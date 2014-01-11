@@ -106,7 +106,7 @@ AV.Cloud.define("update_user_info", function(request, response) {
     if (headViewURL)
     {
         user.set('largeHeadViewURL',headViewURL);
-        user.set('smailHeadViewURL',headViewURL+'?imageView/1/w/60/h/60');
+        user.set('smailHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/60x60');
     }
 
     if (backgroundViewURL)
@@ -639,7 +639,7 @@ AV.Cloud.define("update_photo", function(request, response) {
 
         //图片url
         photo.set('originalURL',imageURL);
-        photo.set('thumbnailURL',imageURL+'?imageView/1/w/100/h/100');
+        photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
 
         var temperatureQuery = new AV.Query(Temperature);
         temperatureQuery.greaterThanOrEqualTo('minTemperture',temperature);
