@@ -1,52 +1,3 @@
-// Use AV.Cloud.define to define as many cloud functions as you want.
-// For example:
-
-var array = ["a1","a2","3"];
-
-
-
-AV.Cloud.define("hello", function(request, response) {
-
-  response.success("Hello world!");
-
-    for (var i in array)
-    {
-        console.log(array[i]);
-    }
-
-//    var now = new Date();
-//    var nowStr = now.format("yyyy-MM-dd hh:mm:ss");
-////使用方法2:
-//    var testDate = new Date();
-//    var testStr = testDate.format("YYYY年MM月dd日hh小时mm分ss秒");
-//    alert(testStr);
-////示例：
-//    alert(new Date().Format("yyyy年MM月dd日"));
-//    alert(new Date().Format("MM/dd/yyyy"));
-//    alert(new Date().Format("yyyyMMdd"));
-//    alert(new Date().Format("yyyy-MM-dd hh:mm:ss"));
-
-
-
-    var myDate = new Date();
-//    myDate = formatDate("2014-1-18 20:30:00");
-    var push = AV.Push.send({
-        channels: [ "Public" ],
-//        push_time: "2014-01-08T20:30:00Z",
-        data: {
-            message: "测试测试测试"
-        }
-    });
-    console.dir(push);
-});
-
-AV.Cloud.define("test", function(request, response) {
-
-    console.log('test');
-    var test = request.params.test;
-    response.success(test+"Hello world!");
-});
-
 
 var User = AV.Object.extend('_User');
 var Installation = AV.Object.extend('_Installation');
@@ -71,8 +22,8 @@ function _checkLogin(request, response){
 }
 
 /****************
- 用户资料
- *****************/
+    用户资料
+*****************/
 
 //更新用户资料
 AV.Cloud.define("update_user_info", function(request, response) {
@@ -120,8 +71,8 @@ AV.Cloud.define("update_user_info", function(request, response) {
 });
 
 /**************
- 用户资料
- ***************/
+    用户资料
+***************/
 
 //关注
 AV.Cloud.define("add_friend", function(request, response) {
@@ -572,7 +523,7 @@ AV.Cloud.define("delete_schedule", function(request, response){
 });
 
 /****************
- 图片
+      图片
  *****************/
 
 //上传街拍
