@@ -106,7 +106,7 @@ AV.Cloud.define("update_user_info", function(request, response) {
     if (headViewURL)
     {
         user.set('largeHeadViewURL',headViewURL);
-        user.set('smailHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/60x60');
+        user.set('smallHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/60x60');
     }
 
     if (backgroundViewURL)
