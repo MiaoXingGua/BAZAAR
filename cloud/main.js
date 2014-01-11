@@ -71,6 +71,23 @@ function _checkLogin(request, response){
 }
 
 /****************
+ 通用函数
+ *****************/
+function _includeKeyWithPhoto(photoQuery){
+    photoQuery.include('content');
+    photoQuery.include('brand');
+    photoQuery.include('temperature');
+    photoQuery.include('user');
+}
+
+function _includeKeyWithComment(commentQuery){
+
+        commentQuery.include("user");
+        commentQuery.include("content");
+        commentQuery.include("photo");
+}
+
+/****************
  用户资料
  *****************/
 
@@ -79,11 +96,11 @@ AV.Cloud.define("update_user_info", function(request, response) {
 
     _checkLogin(request, response);
 
-    var headViewURL = response.params.headViewURL;
-    var backgroundViewURL = response.params.backgroundViewURL;
-    var nickname = response.params.nickname;
-    var gender = response.params.gender;
-    var city = response.params.city;
+    var headViewURL = request.params.headViewURL;
+    var backgroundViewURL = request.params.backgroundViewURL;
+    var nickname = request.params.nickname;
+    var gender = request.params.gender;
+    var city = request.params.city;
 
     var user = request.user;
     if (headViewURL)
@@ -676,3 +693,194 @@ AV.Cloud.define("update_photo", function(request, response) {
     }
 });
 
+
+
+
+//查看用户的相册
+AV.Cloud.define("search_user_photo", function(request, response) {
+
+    var user = request.params.user;
+
+    var photoQ = new AV.Query(Photo);
+    _includeKeyWithPhoto(photoQ);
+    photoQ.descending('createdAt');
+    photoQ.equal('user',user);
+    photoQ.find().then(function(photos) {
+
+        response.success(photos);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+});
+
+//查看全部图片 //0.官方 1.最新街拍 2.最热街拍 3.附近的
+AV.Cloud.define("search_all_photo", function(request, response) {
+
+    var type = request._params.type;
+
+    var photoQ = new AV.Query(Photo);
+    _includeKeyWithPhoto(photoQ);
+
+    if (type == 0)
+    {
+        photoQ.equal('isOfficial',true);
+        photoQ.descending('updateAt');
+    }
+    else if (type == 1)
+    {
+        photoQ.equal('isOfficial',false);
+        photoQ.descending('createdAt');
+    }
+    else if (type == 2)
+    {
+        photoQ.equal('isOfficial',false);
+        photoQ.descending('hot');
+    }
+    else if (type == 3)
+    {
+        photoQ.equal('isOfficial',false);
+        var latitude = request.params.latitude;
+        var longitude = request.params.longitude;
+        var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
+        photoQ.near('location',location);
+    }
+    photoQ.find().then(function(photos) {
+
+        response.success(photos);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+});
+
+//评论照片
+AV.Cloud.define("comment_photo", function(request, response) {
+
+    _checkLogin(request, response);
+
+    var user = request.user;
+    var photo = request.params.photo;
+    var voiceURL = request.params.voiceURL;
+    var text = request.params.text;
+
+    if (!photo || !(voiceURL || text))
+    {
+        response.error('参数错误');
+    }
+
+
+    var comment = new AV.Object(Comment);
+
+    comment.set('user',user);
+
+    photo.increment('hot');
+    comment.set('photo',photo);
+
+    var content = new AV.Object(Content);
+    content.set('voiceURL',voiceURL);
+    content.set('text',text);
+    comment.set('content',content);
+
+    comment.save().then(function(comment) {
+
+        response.success(comment);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+});
+
+//查看照片评论
+AV.Cloud.define("get_photo_comments", function(request, response) {
+
+    var photo = request.params.photo;
+
+    if (!photo)
+    {
+        response.error('参数错误');
+    }
+
+    var commentQ = new AV.Query(Comment);
+    _includeKeyWithComment(commentQ);
+    commentQ.descending('createdAt');
+    commentQ.equal('photo',photo);
+    commentQ.find().then(function(comments) {
+
+        response.success(comments);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+});
+
+//查看照片评论数
+AV.Cloud.define("get_photo_comments_count", function(request, response) {
+
+    var photo = request.params.photo;
+
+    if (!photo)
+    {
+        response.error('参数错误');
+    }
+
+    var commentQ = new AV.Query(Comment);
+    _includeKeyWithComment(commentQ);
+    commentQ.descending('createdAt');
+    commentQ.equal('photo',photo);
+    commentQ.find().then(function(comments) {
+
+        response.success(comments);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+});
+
+//收藏照片
+AV.Cloud.define("comment_photo", function(request, response) {
+
+    _checkLogin(request, response);
+
+    var user = request.user;
+    var photo = request.params.photo;
+    if (!photo)
+    {
+        response.error('参数错误');
+    }
+
+    user.set('faviconPhotos',photo);
+
+    user.save().then(function(user) {
+
+        photo.set('faviconUsers',user);
+        photo.increment('hot');
+        return photo.save();
+
+    }).then(function(photo) {
+
+        response.success();
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+
+});
+
+//查看收藏的照片
+AV.Cloud.define("comment_photo", function(request, response) {
+
+    _checkLogin(request, response);
+});
