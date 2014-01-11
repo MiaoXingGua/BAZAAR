@@ -105,7 +105,8 @@ AV.Cloud.define("update_user_info", function(request, response) {
     var user = request.user;
     if (headViewURL)
     {
-        user.set('headViewURL',headViewURL);
+        user.set('largeHeadViewURL',headViewURL);
+        user.set('smailHeadViewURL',headViewURL+'?imageView/1/w/60/h/60');
     }
 
     if (backgroundViewURL)
