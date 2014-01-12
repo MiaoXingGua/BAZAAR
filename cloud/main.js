@@ -646,8 +646,10 @@ AV.Cloud.define("update_photo", function(request, response) {
         temperatureQuery.lessThanOrEqualTo('maxTemperture',temperature);
         temperatureQuery.first().then(function(temperatureObj){
 
+            console.log('温度大小'+temperatureObj.id);
+            var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
             //气温种类
-            photo.set('temperature',temperatureObj);
+            photo.set('temperature',temperatureId);
             //图片尺寸
             AV.Cloud.httpRequest({
                 url: imageURL+'?imageInfo',
@@ -655,16 +657,19 @@ AV.Cloud.define("update_photo", function(request, response) {
                     parseString(httpResponse.text, function (error, result) {
                         if (result)
                         {
-                            photo.set('width',result,width);
-                            photo.set('height',result,height);
+                            photo.set('width',result.width);
+                            photo.set('height',result.height);
+
+                            console.log('图片大小'+result.width,result.height);
 
                             photos.push(photo);
 
                             if (photos.length == imageURLs.length)
                             {
-                                AV.Object.saveAll(photos).then(function() {
+                                console.log('图片数量'+photos.length);
+                                AV.Object.saveAll(photos).then(function(photos) {
 
-                                    response.success();
+                                    response.success(photos);
 
                                 }, function(error) {
 
