@@ -106,7 +106,7 @@ AV.Cloud.define("update_user_info", function(request, response) {
     if (headViewURL)
     {
         user.set('largeHeadViewURL',headViewURL);
-        user.set('smallHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/60x60');
+        user.set('smallHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/100x100');
     }
 
     if (backgroundViewURL)
@@ -884,4 +884,32 @@ AV.Cloud.define("comment_photo", function(request, response) {
 AV.Cloud.define("comment_photo", function(request, response) {
 
     _checkLogin(request, response);
+});
+
+AV.Cloud.define("pm_test", function(request, response) {
+
+    AV.Cloud.httpRequest({
+        url: 'http://www.pm25.in/api/querys/all_cities.json?token=5j1znBVAsnSf5xQyNQyq',
+        success: function(httpResponse) {
+            console.log(httpResponse.text);
+            parseString(httpResponse.text, function (error, result) {
+                if (result)
+                {
+                    console.dir(result);
+                     response.success(result);
+                }
+                else
+                {
+                    console.dir(error);
+                    response.error('Request failed with response code ' + error);
+                }
+            });
+        },
+        error: function(error){
+
+            console.dir(error);
+            response.error(error);
+
+        }
+    });
 });
