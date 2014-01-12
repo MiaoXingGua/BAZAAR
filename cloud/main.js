@@ -653,8 +653,8 @@ AV.Cloud.define("update_photo", function(request, response) {
 
         console.log('查询'+temperature);
         var temperatureQuery = new AV.Query(Temperature);
-        temperatureQuery.greaterThanOrEqualTo('minTemperture',temperature);
-        temperatureQuery.lessThanOrEqualTo('maxTemperture',temperature);
+        temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
+        temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
         temperatureQuery.first().then(function(temperatureObj){
 
             console.dir(temperatureObj);
