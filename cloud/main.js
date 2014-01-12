@@ -612,10 +612,10 @@ AV.Cloud.define("update_photo", function(request, response) {
         response.error('缺少必要参数');
     }
 
-    if (!(text || voiceURL))
-    {
-        response.error('缺少必要参数');
-    }
+//    if (!(text || voiceURL))
+//    {
+//        response.error('缺少必要参数');
+//    }
 
     var photos = [];
     console.log('开始');
@@ -637,12 +637,14 @@ AV.Cloud.define("update_photo", function(request, response) {
         //用户
         photo.set('user',user);
         console.log('开始4');
+
         //内容
         var content = new AV.Object(Content);
-        content.set('voiceURL',voiceURL);
-        content.set('text',text);
+        if (voiceURL) content.set('voiceURL',voiceURL);
+        if (text) content.set('text',text);
         photo.set('content',content);
         console.log('开始5');
+
         //图片url
         photo.set('originalURL',imageURL);
         photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
