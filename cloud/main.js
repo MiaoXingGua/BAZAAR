@@ -293,7 +293,7 @@ AV.Cloud.define("post_message", function(request, response){
     var message = new Message();
     message.set('fromUser',fromUser);
     message.set('toUser',toUser);
-    var content = new AV.Object(Content);
+    var content = new Content();
     content.text = text;
     content.voiceURL = voiceURL;
     message.set('content',content);
@@ -639,7 +639,7 @@ AV.Cloud.define("update_photo", function(request, response) {
         console.log('开始4');
 
         //内容
-        var content = new AV.Object(Content);
+        var content = new Content();
 //        if (voiceURL) content.set('voiceURL',voiceURL);
 //        if (text) content.set('text',text);
         console.log('开始5');
@@ -794,14 +794,14 @@ AV.Cloud.define("comment_photo", function(request, response) {
     }
 
 
-    var comment = new AV.Object(Comment);
+    var comment = new Comment();
 
     comment.set('user',user);
 
     photo.increment('hot');
     comment.set('photo',photo);
 
-    var content = new AV.Object(Content);
+    var content = new Content();
     content.set('voiceURL',voiceURL);
     content.set('text',text);
     comment.set('content',content);
