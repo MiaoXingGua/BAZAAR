@@ -672,7 +672,7 @@ AV.Cloud.define("update_photo", function(request, response) {
                 success: function(httpResponse) {
 
                     console.log(httpResponse.text);
-                    console.log('图片大小'+result.width,result.height);
+                    console.log('图片大小'+httpResponse.width,httpResponse.height);
                     parseString(httpResponse.text, function (error, result) {
                         if (result)
                         {
