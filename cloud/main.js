@@ -613,7 +613,7 @@ AV.Cloud.define("update_photo", function(request, response) {
     }
 
     var photos = [];
-
+    console.log('开始');
     for (var i in imageURLs)
     {
         var imageURL = imageURLs[i];
@@ -641,6 +641,7 @@ AV.Cloud.define("update_photo", function(request, response) {
         photo.set('originalURL',imageURL);
         photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
 
+        console.log('查询');
         var temperatureQuery = new AV.Query(Temperature);
         temperatureQuery.greaterThanOrEqualTo('minTemperture',temperature);
         temperatureQuery.lessThanOrEqualTo('maxTemperture',temperature);
@@ -650,6 +651,8 @@ AV.Cloud.define("update_photo", function(request, response) {
             var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
             //气温种类
             photo.set('temperature',temperatureId);
+
+            console.log('请求');
             //图片尺寸
             AV.Cloud.httpRequest({
                 url: imageURL+'?imageInfo',
@@ -662,11 +665,13 @@ AV.Cloud.define("update_photo", function(request, response) {
 
                             console.log('图片大小'+result.width,result.height);
 
+
                             photos.push(photo);
+                            console.log('图片数量'+photos.length);
 
                             if (photos.length == imageURLs.length)
                             {
-                                console.log('图片数量'+photos.length);
+                                console.log('保存');
                                 AV.Object.saveAll(photos).then(function(photos) {
 
                                     response.success(photos);
@@ -680,7 +685,7 @@ AV.Cloud.define("update_photo", function(request, response) {
                         }
                         else
                         {
-                            response.error('Request failed with response code ' + error);
+                            response.error(error);
                         }
                     });
                 },
