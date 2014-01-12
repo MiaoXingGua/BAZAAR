@@ -640,10 +640,11 @@ AV.Cloud.define("update_photo", function(request, response) {
 
         //内容
         var content = new AV.Object(Content);
-        if (voiceURL) content.set('voiceURL',voiceURL);
-        if (text) content.set('text',text);
-        photo.set('content',content);
+//        if (voiceURL) content.set('voiceURL',voiceURL);
+//        if (text) content.set('text',text);
         console.log('开始5');
+        photo.set('content',content);
+        console.log('开始6');
 
         //图片url
         photo.set('originalURL',imageURL);
