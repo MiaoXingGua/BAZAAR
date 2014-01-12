@@ -889,7 +889,7 @@ AV.Cloud.define("comment_photo", function(request, response) {
 AV.Cloud.define("pm_test", function(request, response) {
 
     AV.Cloud.httpRequest({
-        url: 'http://www.pm25.in/api/querys/all_cities.json?token=5j1znBVAsnSf5xQyNQyq',
+        url: 'http://www.pm25.in/api/querys/all_cities.json',
         success: function(httpResponse) {
             console.log(httpResponse.text);
             parseString(httpResponse.text, function (error, result) {
