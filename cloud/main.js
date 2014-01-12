@@ -629,34 +629,35 @@ AV.Cloud.define("update_photo", function(request, response) {
 
         //天气code
         photo.set('weatherCode',weatherCode);
-        console.log('开始2');
+
         //坐标
         var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
         photo.set('location',location);
-        console.log('开始3');
+
+
         //用户
         photo.set('user',user);
-        console.log('开始4');
+
 
         //内容
         var content = new Content();
 //        if (voiceURL) content.set('voiceURL',voiceURL);
 //        if (text) content.set('text',text);
-        console.log('开始5');
+
         photo.set('content',content);
-        console.log('开始6');
+
 
         //图片url
         photo.set('originalURL',imageURL);
         photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
 
-        console.log('查询');
+        console.log('查询'+temperature);
         var temperatureQuery = new AV.Query(Temperature);
         temperatureQuery.greaterThanOrEqualTo('minTemperture',temperature);
         temperatureQuery.lessThanOrEqualTo('maxTemperture',temperature);
         temperatureQuery.first().then(function(temperatureObj){
 
-            console.log('温度大小'+temperatureObj.id);
+            console.dir(temperatureObj);
             var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
             //气温种类
             photo.set('temperature',temperatureId);
