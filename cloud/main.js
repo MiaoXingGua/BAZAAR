@@ -62,6 +62,9 @@ var Content = AV.Object.extend('Content');
 var Photo = AV.Object.extend('Photo');
 var Temperature = AV.Object.extend('Temperature');
 
+var parseString = require('xml2js').parseString;
+var parse = require('xml2js').Parser();
+
 function _checkLogin(request, response){
 
     if (!request.user)
@@ -657,7 +660,7 @@ AV.Cloud.define("update_photo", function(request, response) {
         temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
         temperatureQuery.first().then(function(temperatureObj){
 
-            console.dir(temperatureObj);
+//            console.dir(temperatureObj);
             var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
             //气温种类
             photo.set('temperature',temperatureId);
@@ -667,6 +670,9 @@ AV.Cloud.define("update_photo", function(request, response) {
             AV.Cloud.httpRequest({
                 url: imageURL+'?imageInfo',
                 success: function(httpResponse) {
+
+                    console.log(httpResponse.text);
+
                     parseString(httpResponse.text, function (error, result) {
                         if (result)
                         {
