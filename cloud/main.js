@@ -542,6 +542,9 @@ AV.Cloud.define("create_schedule", function(request, response){
     var type = request.params.type;
     var woeid = request.params.woeid;
     var place = request.params.place;
+    var text = request.params.text;
+    var voiceURL = request.params.voiceURL;
+    var URL = request.params.URL;
     var push = request.params.push;
     var pushId = AV.Object.createWithoutData("_User", user.id);
 
@@ -555,8 +558,15 @@ AV.Cloud.define("create_schedule", function(request, response){
     schedule.set('type',type);
     schedule.set('woeid',woeid);
     schedule.set('place',place);
-    schedule.set('user',user);
-    schedule.set('schedule',schedule);
+    schedule.set('user',userId);
+
+    var content = new Content();
+    content.set('text',text);
+    content.set('voiceURL',voiceURL);
+    content.set('URL',URL);
+    schedule.set('content',content);
+
+    schedule.set('push',pushId);
     schedule.save().then(function(schedule) {
 
         response.success(schedule);
