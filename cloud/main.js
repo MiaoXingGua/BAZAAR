@@ -545,37 +545,54 @@ AV.Cloud.define("create_schedule", function(request, response){
     var text = request.params.text;
     var voiceURL = request.params.voiceURL;
     var URL = request.params.URL;
-    var push = request.params.push;
-    var pushId = AV.Object.createWithoutData("_User", user.id);
+    var remindDate = request.params.remindDate;
 
-    if (!(user && date && remindDate && woeid && place && push))
-    {
-        response.error(error);
-    }
+    var installationQuery = new AV.Query(Installation);
+    installationQuery.equal('user',userId);
 
-    var schedule = new Schedule();
-    schedule.set('date',date);
-    schedule.set('type',type);
-    schedule.set('woeid',woeid);
-    schedule.set('place',place);
-    schedule.set('user',userId);
+    var myDate = new Date();
+//    myDate.setFullYear(2014,1,13);
+    myDate.setDate(myDate.getDate()+remindDate);
 
-    var content = new Content();
-    content.set('text',text);
-    content.set('voiceURL',voiceURL);
-    content.set('URL',URL);
-    schedule.set('content',content);
-
-    schedule.set('push',pushId);
-    schedule.save().then(function(schedule) {
-
-        response.success(schedule);
-
-    }, function(error) {
-
-        response.error(error);
-
+    AV.Push.send({
+        where: installationQuery,
+        data: {
+            alert: '你有一个新的日程'
+        },
+        push_time:myDate
     });
+
+//    var push = request.params.push;
+//    var pushId = AV.Object.createWithoutData("_User", user.id);
+//
+//    if (!(user && date && remindDate && woeid && place && push))
+//    {
+//        response.error(error);
+//    }
+//
+//    var schedule = new Schedule();
+//    schedule.set('date',date);
+//    schedule.set('type',type);
+//    schedule.set('woeid',woeid);
+//    schedule.set('place',place);
+//    schedule.set('user',userId);
+//
+//    var content = new Content();
+//    content.set('text',text);
+//    content.set('voiceURL',voiceURL);
+//    content.set('URL',URL);
+//    schedule.set('content',content);
+//
+//    schedule.set('push',pushId);
+//    schedule.save().then(function(schedule) {
+//
+//        response.success(schedule);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
 });
 
 //查看全部日程
