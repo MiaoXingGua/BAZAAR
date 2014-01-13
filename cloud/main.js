@@ -566,6 +566,9 @@ AV.Cloud.define("create_schedule", function(request, response){
         response.error('参数错误');
     }
 
+//    console.dir(remindDate);
+//    console.dir(date);
+
     //创建通知
     var installationQuery = new AV.Query(Installation);
     installationQuery.equalTo('user',userId);
@@ -596,7 +599,9 @@ AV.Cloud.define("create_schedule", function(request, response){
         var schedule = new Schedule();
 
         var date_time = new Date();
+        console.dir(date_time);
         date_time.setSeconds(date_time.getSeconds()+date);
+        console.dir(date_time);
 
         schedule.set('date',date_time);
         schedule.set('type',type);
