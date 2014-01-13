@@ -540,25 +540,31 @@ AV.Cloud.define("create_schedule", function(request, response){
     var userId = AV.Object.createWithoutData("_User", user.id);
     var date = request.params.date;
     var type = request.params.type;
-    var remindDate = request.params.remindDate;
     var woeid = request.params.woeid;
     var place = request.params.place;
+    var push = request.params.push;
+    var pushId = AV.Object.createWithoutData("_User", user.id);
 
-    if (!(user && date && remindDate && woeid && place))
+    if (!(user && date && remindDate && woeid && place && push))
     {
         response.error(error);
     }
 
-    var installationQuery = new AV.Query(Installation);
-    installationQuery.equalTo('user',userId);
+    var schedule = new Schedule();
+    schedule.set('date',date);
+    schedule.set('type',type);
+    schedule.set('woeid',woeid);
+    schedule.set('place',place);
+    schedule.set('user',user);
+    schedule.set('schedule',schedule);
+    schedule.save().then(function(schedule) {
 
-    AV.Push.send({
-//        channels: [ "Public" ],
-        push_time : remindDate,
-        where : installationQuery,
-        data : {
-            alert: "Public message"
-        }
+        response.success(schedule);
+
+    }, function(error) {
+
+        response.error(error);
+
     });
 });
 
@@ -584,6 +590,24 @@ AV.Cloud.define("my_schedule", function(request, response){
 
 //编辑日程
 AV.Cloud.define("update_schedule", function(request, response){
+
+    _checkLogin(request, response);
+
+//    var user = request.user;
+//    var userId = AV.Object.createWithoutData("_User", user.id);
+    var date = request.params.date;
+    var type = request.params.type;
+    var woeid = request.params.woeid;
+    var place = request.params.place;
+//    var remindDate = request.params.remindDate;
+    var schedule = request.params.schedule;
+
+    schedule.set('date',date);
+    schedule.set('type',type);
+    schedule.set('woeid',woeid);
+    schedule.set('place',place);
+    schedule.set('date',date);
+
 
 });
 
@@ -624,7 +648,6 @@ AV.Cloud.define("update_photo", function(request, response) {
     console.log('开始');
     for (var i in imageURLs)
     {
-        console.log('开始1');
         var imageURL = imageURLs[i];
 
         //图片对象
@@ -637,10 +660,8 @@ AV.Cloud.define("update_photo", function(request, response) {
         var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
         photo.set('location',location);
 
-
         //用户
         photo.set('user',user);
-
 
         //内容
         var content = new Content();
@@ -648,7 +669,6 @@ AV.Cloud.define("update_photo", function(request, response) {
 //        if (text) content.set('text',text);
 
         photo.set('content',content);
-
 
         //图片url
         photo.set('originalURL',imageURL);
@@ -677,16 +697,16 @@ AV.Cloud.define("update_photo", function(request, response) {
                     var result = JSON.parse(httpResponse.text)
                         if (result)
                         {
-                            console.log('图片大小'+result.width,result.height);
+//                            console.log('图片大小'+result.width,result.height);
                             photo.set('width',result.width);
                             photo.set('height',result.height);
 
                             photos.push(photo);
-                            console.log('图片数量'+photos.length);
+//                            console.log('图片数量'+photos.length);
 
                             if (photos.length == imageURLs.length)
                             {
-                                console.log('保存');
+//                                console.log('保存');
                                 AV.Object.saveAll(photos).then(function(photos) {
 
                                     response.success(photos);
@@ -798,7 +818,6 @@ AV.Cloud.define("comment_photo", function(request, response) {
     {
         response.error('参数错误');
     }
-
 
     var comment = new Comment();
 
