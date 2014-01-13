@@ -642,8 +642,8 @@ AV.Cloud.define("create_schedule", function(request, response){
     var installationQuery = new AV.Query(Installation);
     installationQuery.equalTo('user',userId);
 
-    var push_time = moment(new Date()).add('hours',8).toDate();
-    push_time = new Date();
+//    var push_time = moment(new Date()).add('hours',8).toDate();
+    var push_time = new Date();
     push_time.setSeconds(push_time.getSeconds()+remindTime);
 
     var guid = newGuid();
@@ -662,37 +662,45 @@ AV.Cloud.define("create_schedule", function(request, response){
     pushQ.equalTo('guid',guid);
     pushQ.first().then(function(push) {
 
+        if (push)
+        {
+            //创建日程
+            var schedule = new Schedule();
+
+//        var date_time = moment(new Date()).add('hours',8).toDate();
+            var date_time = new Date();
+            date_time.setSeconds(date_time.getSeconds()+time);
+
+            schedule.set('date',date_time);
+            schedule.set('type',type);
+            schedule.set('woeid',woeid);
+            schedule.set('place',place);
+            schedule.set('user',userId);
+
+            var content = new Content();
+            content.set('text',text);
+            content.set('voiceURL',voiceURL);
+            content.set('URL',URL);
+            schedule.set('content',content);
+
+            var pushId = AV.Object.createWithoutData("_Notification", push.id);
+            schedule.set('push',pushId);
+            schedule.save().then(function(schedule) {
+
+                response.success(schedule);
+
+            }, function(error) {
+
+                response.error(error);
+
+            });
+        }
+        else
+        {
+            response.error('push查询失败');
+        }
 //        console.dir(push);
-        //创建日程
-        var schedule = new Schedule();
 
-        var date_time = moment(new Date()).add('hours',8).toDate();
-        date_time = new Date();
-        date_time.setSeconds(date_time.getSeconds()+time);
-
-        schedule.set('date',date_time);
-        schedule.set('type',type);
-        schedule.set('woeid',woeid);
-        schedule.set('place',place);
-        schedule.set('user',userId);
-
-        var content = new Content();
-        content.set('text',text);
-        content.set('voiceURL',voiceURL);
-        content.set('URL',URL);
-        schedule.set('content',content);
-
-        var pushId = AV.Object.createWithoutData("_Notification", push.id);
-        schedule.set('push',pushId);
-        schedule.save().then(function(schedule) {
-
-            response.success(schedule);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
 
     }, function(error) {
 
