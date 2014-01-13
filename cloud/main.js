@@ -61,6 +61,7 @@ var Comment = AV.Object.extend('Comment');
 var Content = AV.Object.extend('Content');
 var Photo = AV.Object.extend('Photo');
 var Temperature = AV.Object.extend('Temperature');
+var Notification = AV.Object.extend('_Notification');
 
 var parseString = require('xml2js').parseString;
 var parse = require('xml2js').Parser();
@@ -88,6 +89,19 @@ function _includeKeyWithComment(commentQuery){
         commentQuery.include("user");
         commentQuery.include("content");
         commentQuery.include("photo");
+}
+
+//生成guid
+function newGuid()
+{
+    var guid = "";
+    for (var i = 1; i <= 32; i++){
+        var n = Math.floor(Math.random()*16.0).toString(16);
+        guid += n;
+        if((i==8)||(i==12)||(i==16)||(i==20))
+            guid += "-";
+    }
+    return guid;
 }
 
 /****************
@@ -547,6 +561,12 @@ AV.Cloud.define("create_schedule", function(request, response){
     var URL = request.params.URL;
     var remindDate = request.params.remindDate;
 
+    if (!(user && date && remindDate && woeid && place && push))
+    {
+        response.error('参数错误');
+    }
+
+    //创建通知
     var installationQuery = new AV.Query(Installation);
     installationQuery.equalTo('user',userId);
 
@@ -554,46 +574,53 @@ AV.Cloud.define("create_schedule", function(request, response){
 //    myDate.setFullYear(2014,1,13);
     myDate.setSeconds(myDate.getSeconds()+remindDate);
 
+    var guid = newGuid();
+
     AV.Push.send({
         where: installationQuery,
         data: {
             alert: '你有一个新的日程'
         },
         push_time:myDate,
-        test:'test'
+        guid:guid
     });
 
-//    var push = request.params.push;
-//    var pushId = AV.Object.createWithoutData("_User", user.id);
-//
-//    if (!(user && date && remindDate && woeid && place && push))
-//    {
-//        response.error(error);
-//    }
-//
-//    var schedule = new Schedule();
-//    schedule.set('date',date);
-//    schedule.set('type',type);
-//    schedule.set('woeid',woeid);
-//    schedule.set('place',place);
-//    schedule.set('user',userId);
-//
-//    var content = new Content();
-//    content.set('text',text);
-//    content.set('voiceURL',voiceURL);
-//    content.set('URL',URL);
-//    schedule.set('content',content);
-//
-//    schedule.set('push',pushId);
-//    schedule.save().then(function(schedule) {
-//
-//        response.success(schedule);
-//
-//    }, function(error) {
-//
-//        response.error(error);
-//
-//    });
+    //获取通知
+    var pushQ = new AV.Query(Notification);
+    pushQ.equalTo('guid',guid);
+    pushQ.first().then(function(push) {
+
+        //创建日程
+        var schedule = new Schedule();
+        schedule.set('date',date);
+        schedule.set('type',type);
+        schedule.set('woeid',woeid);
+        schedule.set('place',place);
+        schedule.set('user',userId);
+
+        var content = new Content();
+        content.set('text',text);
+        content.set('voiceURL',voiceURL);
+        content.set('URL',URL);
+        schedule.set('content',content);
+
+        var pushId = AV.Object.createWithoutData("_Notification", push.id);
+        schedule.set('push',pushId);
+        schedule.save().then(function(schedule) {
+
+            response.success(schedule);
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
 });
 
 //查看全部日程
