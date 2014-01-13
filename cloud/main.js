@@ -599,7 +599,7 @@ AV.Cloud.define("create_schedule", function(request, response){
         var schedule = new Schedule();
 
         var date_time = new Date();
-        console.dir(date_time);
+
         date_time.setSeconds(date_time.getSeconds()+date);
         console.dir(date_time);
 
