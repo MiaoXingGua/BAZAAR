@@ -559,8 +559,8 @@ AV.Cloud.define("create_schedule", function(request, response){
         data: {
             alert: '你有一个新的日程'
         },
-        push_time:myDate
-       test:'test'
+        push_time:myDate,
+        test:'test'
     });
 
 //    var push = request.params.push;
