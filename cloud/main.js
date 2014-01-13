@@ -619,19 +619,19 @@ AV.Cloud.define("create_schedule", function(request, response){
 
     var user = request.user;
     var userId = AV.Object.createWithoutData("_User", user.id);
-    var time = request.params.time;
+    var dateStr = request.params.dateStr;
     var type = request.params.type;
     var woeid = request.params.woeid;
     var place = request.params.place;
     var text = request.params.text;
     var voiceURL = request.params.voiceURL;
     var URL = request.params.URL;
-    var remindTime = request.params.remindTime;
+    var remindDateStr = request.params.remindDateStr;
 
-    console.dir(remindTime);
-    console.dir(time);
+//    console.dir(remindTime);
+//    console.dir(time);
 
-    if (!(user && time && remindTime && woeid && place))
+    if (!(user && dateStr && remindDateStr && woeid && place))
     {
         response.error('参数错误');
     }
@@ -644,8 +644,11 @@ AV.Cloud.define("create_schedule", function(request, response){
     installationQuery.equalTo('user',userId);
 
 //    var push_time = moment(new Date()).add('hours',8).toDate();
-    var push_time = new Date();
-    push_time.setSeconds(push_time.getSeconds()+remindTime);
+//    var push_time = new Date();
+//    push_time.setSeconds(push_time.getSeconds()+remindTime);
+
+    var push_time = moment(remindDateStr, "yyyy-MM-dd HH:mm:ss");
+
 
     var guid = newGuid();
 
@@ -669,8 +672,9 @@ AV.Cloud.define("create_schedule", function(request, response){
             var schedule = new Schedule();
 
 //            var date_time = moment(new Date()).add('hours',8).toDate();
-            var date_time = new Date();
-            date_time.setSeconds(date_time.getSeconds());
+//            var date_time = new Date();
+//            date_time.setSeconds(date_time.getSeconds());
+            var date_time = moment(dateStr, "yyyy-MM-dd HH:mm:ss");
 
             schedule.set('date',date_time);
             schedule.set('type',type);
