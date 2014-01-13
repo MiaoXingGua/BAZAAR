@@ -66,6 +66,8 @@ var Notification = AV.Object.extend('_Notification');
 var parseString = require('xml2js').parseString;
 var parse = require('xml2js').Parser();
 
+var moment = require('moment')
+
 function _checkLogin(request, response){
 
     if (!request.user)
@@ -573,7 +575,7 @@ AV.Cloud.define("create_schedule", function(request, response){
     var installationQuery = new AV.Query(Installation);
     installationQuery.equalTo('user',userId);
 
-    var push_time = new Date();
+    var push_time = moment(new Date()).add('hours',8);
     push_time.setSeconds(push_time.getSeconds()+remindDate);
 
     var guid = newGuid();
@@ -598,7 +600,7 @@ AV.Cloud.define("create_schedule", function(request, response){
         //创建日程
         var schedule = new Schedule();
 
-        var date_time = new Date();
+        var date_time = moment(new Date()).add('hours',8);
 
         date_time.setSeconds(date_time.getSeconds()+date);
         console.dir(date_time);
