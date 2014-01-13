@@ -577,7 +577,8 @@ function createdPush(users,push_time,alert,done){
         //创建日程
         var schedule = new Schedule();
 
-        var date_time = moment(new Date()).add('hours',8).toDate();
+//        var date_time = moment(new Date()).add('hours',8).toDate();
+        var date_time = new Date();
         date_time.setSeconds(date_time.getSeconds()+time);
 
         schedule.set('date',date_time);
@@ -642,8 +643,8 @@ AV.Cloud.define("create_schedule", function(request, response){
     var installationQuery = new AV.Query(Installation);
     installationQuery.equalTo('user',userId);
 
-    var push_time = moment(new Date()).add('hours',8).toDate();
-//    var push_time = new Date();
+//    var push_time = moment(new Date()).add('hours',8).toDate();
+    var push_time = new Date();
     push_time.setSeconds(push_time.getSeconds()+remindTime);
 
     var guid = newGuid();
@@ -667,9 +668,9 @@ AV.Cloud.define("create_schedule", function(request, response){
             //创建日程
             var schedule = new Schedule();
 
-            var date_time = moment(new Date()).add('hours',8).toDate();
-//            var date_time = new Date();
-            date_time.setSeconds(date_time.getSeconds()+time);
+//            var date_time = moment(new Date()).add('hours',8).toDate();
+            var date_time = new Date();
+            date_time.setSeconds(date_time.getSeconds());
 
             schedule.set('date',date_time);
             schedule.set('type',type);
