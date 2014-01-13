@@ -552,7 +552,7 @@ AV.Cloud.define("create_schedule", function(request, response){
 
     var myDate = new Date();
 //    myDate.setFullYear(2014,1,13);
-    myDate.setDate(myDate.getDate()+remindDate);
+    myDate.setSeconds(myDate.getSeconds()+remindDate);
 
     AV.Push.send({
         where: installationQuery,
@@ -560,6 +560,7 @@ AV.Cloud.define("create_schedule", function(request, response){
             alert: '你有一个新的日程'
         },
         push_time:myDate
+       test:'test'
     });
 
 //    var push = request.params.push;
