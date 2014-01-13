@@ -552,17 +552,16 @@ function createdPush(users,push_time,alert,done){
 
     //创建通知
     var installationQuery = new AV.Query(Installation);
-    installationQuery.equalTo('user',userId);
+    installationQuery.containedIn('user',users);
 
-    var push_time = moment(new Date()).add('hours',8).toDate();
-    push_time.setSeconds(push_time.getSeconds()+remindTime);
+    console.dir(push_time);
 
     var guid = newGuid();
 
     AV.Push.send({
         where: installationQuery,
         data: {
-            alert: '你有一个新的日程'
+            alert: alert
         },
         push_time:push_time,
         guid:guid
@@ -573,41 +572,19 @@ function createdPush(users,push_time,alert,done){
     pushQ.equalTo('guid',guid);
     pushQ.first().then(function(push) {
 
-//        console.dir(push);
-        //创建日程
-        var schedule = new Schedule();
-
-//        var date_time = moment(new Date()).add('hours',8).toDate();
-        var date_time = new Date();
-        date_time.setSeconds(date_time.getSeconds()+time);
-
-        schedule.set('date',date_time);
-        schedule.set('type',type);
-        schedule.set('woeid',woeid);
-        schedule.set('place',place);
-        schedule.set('user',userId);
-
-        var content = new Content();
-        content.set('text',text);
-        content.set('voiceURL',voiceURL);
-        content.set('URL',URL);
-        schedule.set('content',content);
-
-        var pushId = AV.Object.createWithoutData("_Notification", push.id);
-        schedule.set('push',pushId);
-        schedule.save().then(function(schedule) {
-
-            response.success(schedule);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
+        if (push)
+        {
+            var pushId = AV.Object.createWithoutData("_Notification", push.id);
+            done(pushId,null);
+        }
+        else
+        {
+            done(null,'push查询失败');
+        }
 
     }, function(error) {
 
-        response.error(error);
+        done(null,error);
 
     });
 }
@@ -636,40 +613,21 @@ AV.Cloud.define("create_schedule", function(request, response){
         response.error('参数错误');
     }
 
-//    console.dir(remindDate);
-//    console.dir(date);
-
-    //创建通知
-    var installationQuery = new AV.Query(Installation);
-    installationQuery.equalTo('user',userId);
-
 //    var push_time = moment(new Date()).add('hours',8).toDate();
 //    var push_time = new Date();
 //    push_time.setSeconds(push_time.getSeconds()+remindTime);
 
     console.dir(remindDateStr);
 
-    var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").toDate();
+    var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
 
     console.dir(push_time);
 
-    var guid = newGuid();
+    //创建通知
 
-    AV.Push.send({
-        where: installationQuery,
-        data: {
-            alert: '你有一个新的日程'
-        },
-        push_time:push_time,
-        guid:guid
-    });
+    createdPush([userId],push_time,'你有一个新的日程',function(push,error){
 
-    //获取通知
-    var pushQ = new AV.Query(Notification);
-    pushQ.equalTo('guid',guid);
-    pushQ.first().then(function(push) {
-
-        if (push)
+        if (push && !error)
         {
             //创建日程
             var schedule = new Schedule();
@@ -677,7 +635,7 @@ AV.Cloud.define("create_schedule", function(request, response){
 //            var date_time = moment(new Date()).add('hours',8).toDate();
 //            var date_time = new Date();
 //            date_time.setSeconds(date_time.getSeconds());
-            var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").toDate();
+            var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
 
             schedule.set('date',date_time);
             schedule.set('type',type);
@@ -705,16 +663,78 @@ AV.Cloud.define("create_schedule", function(request, response){
         }
         else
         {
-            response.error('push查询失败');
+            response.error(error);
         }
-//        console.dir(push);
-
-
-    }, function(error) {
-
-        response.error(error);
 
     });
+//
+//    var installationQuery = new AV.Query(Installation);
+//    installationQuery.equalTo('user',userId);
+//
+//
+//
+//    var guid = newGuid();
+//
+//    AV.Push.send({
+//        where: installationQuery,
+//        data: {
+//            alert: '你有一个新的日程'
+//        },
+//        push_time:push_time,
+//        guid:guid
+//    });
+//
+//    //获取通知
+//    var pushQ = new AV.Query(Notification);
+//    pushQ.equalTo('guid',guid);
+//    pushQ.first().then(function(push) {
+//
+//        if (push)
+//        {
+//            //创建日程
+//            var schedule = new Schedule();
+//
+////            var date_time = moment(new Date()).add('hours',8).toDate();
+////            var date_time = new Date();
+////            date_time.setSeconds(date_time.getSeconds());
+//            var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").toDate();
+//
+//            schedule.set('date',date_time);
+//            schedule.set('type',type);
+//            schedule.set('woeid',woeid);
+//            schedule.set('place',place);
+//            schedule.set('user',userId);
+//
+//            var content = new Content();
+//            content.set('text',text);
+//            content.set('voiceURL',voiceURL);
+//            content.set('URL',URL);
+//            schedule.set('content',content);
+//
+//            var pushId = AV.Object.createWithoutData("_Notification", push.id);
+//            schedule.set('push',pushId);
+//            schedule.save().then(function(schedule) {
+//
+//                response.success(schedule);
+//
+//            }, function(error) {
+//
+//                response.error(error);
+//
+//            });
+//        }
+//        else
+//        {
+//            response.error('push查询失败');
+//        }
+////        console.dir(push);
+//
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
 });
 
 //查看全部日程
