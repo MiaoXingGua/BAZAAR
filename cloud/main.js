@@ -585,11 +585,14 @@ AV.Cloud.define("create_schedule", function(request, response){
         guid:guid
     });
 
+    console.log('guid: '+guid);
+
     //获取通知
     var pushQ = new AV.Query(Notification);
     pushQ.equalTo('guid',guid);
     pushQ.first().then(function(push) {
 
+        console.dir(push);
         //创建日程
         var schedule = new Schedule();
         schedule.set('date',date);
