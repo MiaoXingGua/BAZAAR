@@ -647,6 +647,8 @@ AV.Cloud.define("create_schedule", function(request, response){
 //    var push_time = new Date();
 //    push_time.setSeconds(push_time.getSeconds()+remindTime);
 
+    console.dir(remindDateStr);
+
     var push_time = moment(remindDateStr, "yyyy-MM-dd HH:mm:ss").toDate();
 
     console.dir(push_time);
