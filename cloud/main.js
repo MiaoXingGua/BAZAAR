@@ -570,9 +570,8 @@ AV.Cloud.define("create_schedule", function(request, response){
     var installationQuery = new AV.Query(Installation);
     installationQuery.equalTo('user',userId);
 
-    var myDate = new Date();
-//    myDate.setFullYear(2014,1,13);
-    myDate.setSeconds(myDate.getSeconds()+remindDate);
+    var push_time = new Date();
+    push_time.setSeconds(push_time.getSeconds()+remindDate);
 
     var guid = newGuid();
 
@@ -581,21 +580,25 @@ AV.Cloud.define("create_schedule", function(request, response){
         data: {
             alert: '你有一个新的日程'
         },
-        push_time:myDate,
+        push_time:push_time,
         guid:guid
     });
 
-    console.log('guid: '+guid);
+//    console.log('guid: '+guid);
 
     //获取通知
     var pushQ = new AV.Query(Notification);
     pushQ.equalTo('guid',guid);
     pushQ.first().then(function(push) {
 
-        console.dir(push);
+//        console.dir(push);
         //创建日程
         var schedule = new Schedule();
-        schedule.set('date',date);
+
+        var date_time = new Date();
+        date_time.setSeconds(date_time.getSeconds()+date);
+
+        schedule.set('date',date_time);
         schedule.set('type',type);
         schedule.set('woeid',woeid);
         schedule.set('place',place);
