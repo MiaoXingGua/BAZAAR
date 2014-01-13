@@ -649,7 +649,7 @@ AV.Cloud.define("create_schedule", function(request, response){
 
     console.dir(remindDateStr);
 
-    var push_time = moment(remindDateStr, "yyyy-MM-dd HH:mm:ss").toDate();
+    var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").toDate();
 
     console.dir(push_time);
 
@@ -677,7 +677,7 @@ AV.Cloud.define("create_schedule", function(request, response){
 //            var date_time = moment(new Date()).add('hours',8).toDate();
 //            var date_time = new Date();
 //            date_time.setSeconds(date_time.getSeconds());
-            var date_time = moment(dateStr, "yyyy-MM-dd HH:mm:ss").toDate();
+            var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").toDate();
 
             schedule.set('date',date_time);
             schedule.set('type',type);
