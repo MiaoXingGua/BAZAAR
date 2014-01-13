@@ -548,7 +548,7 @@ AV.Cloud.define("create_schedule", function(request, response){
     var remindDate = request.params.remindDate;
 
     var installationQuery = new AV.Query(Installation);
-    installationQuery.equal('user',userId);
+    installationQuery.equalTo('user',userId);
 
     var myDate = new Date();
 //    myDate.setFullYear(2014,1,13);
