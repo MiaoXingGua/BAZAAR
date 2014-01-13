@@ -627,6 +627,9 @@ AV.Cloud.define("create_schedule", function(request, response){
     var URL = request.params.URL;
     var remindTime = request.params.remindTime;
 
+    console.dir(remindDate);
+    console.dir(time);
+
     if (!(user && time && remindTime && woeid && place))
     {
         response.error('参数错误');
