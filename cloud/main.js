@@ -61,6 +61,8 @@ var Comment = AV.Object.extend('Comment');
 var Content = AV.Object.extend('Content');
 var Photo = AV.Object.extend('Photo');
 var Temperature = AV.Object.extend('Temperature');
+var WeatherType = AV.Object.extend('WeatherType');
+
 var Notification = AV.Object.extend('_Notification');
 
 var parseString = require('xml2js').parseString;
@@ -605,9 +607,6 @@ AV.Cloud.define("create_schedule", function(request, response){
     var URL = request.params.URL;
     var remindDateStr = request.params.remindDateStr;
 
-//    console.dir(remindTime);
-//    console.dir(time);
-
     if (!(user && dateStr && remindDateStr && woeid && place))
     {
         response.error('参数错误');
@@ -617,14 +616,11 @@ AV.Cloud.define("create_schedule", function(request, response){
 //    var push_time = new Date();
 //    push_time.setSeconds(push_time.getSeconds()+remindTime);
 
-    console.dir(remindDateStr);
-
+//    console.dir(remindDateStr);
     var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
-
-    console.dir(push_time);
+//    console.dir(push_time);
 
     //创建通知
-
     createdPush([userId],push_time,'你有一个新的日程',function(push,error){
 
         if (push && !error)
@@ -667,74 +663,6 @@ AV.Cloud.define("create_schedule", function(request, response){
         }
 
     });
-//
-//    var installationQuery = new AV.Query(Installation);
-//    installationQuery.equalTo('user',userId);
-//
-//
-//
-//    var guid = newGuid();
-//
-//    AV.Push.send({
-//        where: installationQuery,
-//        data: {
-//            alert: '你有一个新的日程'
-//        },
-//        push_time:push_time,
-//        guid:guid
-//    });
-//
-//    //获取通知
-//    var pushQ = new AV.Query(Notification);
-//    pushQ.equalTo('guid',guid);
-//    pushQ.first().then(function(push) {
-//
-//        if (push)
-//        {
-//            //创建日程
-//            var schedule = new Schedule();
-//
-////            var date_time = moment(new Date()).add('hours',8).toDate();
-////            var date_time = new Date();
-////            date_time.setSeconds(date_time.getSeconds());
-//            var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").toDate();
-//
-//            schedule.set('date',date_time);
-//            schedule.set('type',type);
-//            schedule.set('woeid',woeid);
-//            schedule.set('place',place);
-//            schedule.set('user',userId);
-//
-//            var content = new Content();
-//            content.set('text',text);
-//            content.set('voiceURL',voiceURL);
-//            content.set('URL',URL);
-//            schedule.set('content',content);
-//
-//            var pushId = AV.Object.createWithoutData("_Notification", push.id);
-//            schedule.set('push',pushId);
-//            schedule.save().then(function(schedule) {
-//
-//                response.success(schedule);
-//
-//            }, function(error) {
-//
-//                response.error(error);
-//
-//            });
-//        }
-//        else
-//        {
-//            response.error('push查询失败');
-//        }
-////        console.dir(push);
-//
-//
-//    }, function(error) {
-//
-//        response.error(error);
-//
-//    });
 });
 
 //查看全部日程
@@ -764,15 +692,88 @@ AV.Cloud.define("update_schedule", function(request, response){
 
     var user = request.user;
     var userId = AV.Object.createWithoutData("_User", user.id);
-    var schedule = request.params.schedule;
-    var time = request.params.time;
+    var dateStr = request.params.dateStr;
     var type = request.params.type;
     var woeid = request.params.woeid;
     var place = request.params.place;
-    var remindTime = request.params.remindTime;
+    var text = request.params.text;
+    var voiceURL = request.params.voiceURL;
+    var URL = request.params.URL;
+    var remindDateStr = request.params.remindDateStr;
     var schedule = request.params.schedule;
 
-    if (!(schedule && user && time && remindTime && woeid && place))
+    if (!schedule)
+    {
+        response.error('参数错误');
+    }
+
+    //修改属性
+    schedule.set('type',type);
+
+    if (woeid) schedule.set('woeid',woeid);
+    if (place) schedule.set('place',place);
+
+    if (dateStr)
+    {
+        var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
+        schedule.set('date',date_time);
+    }
+
+    if (text || voiceURL || URL)
+    {
+        var content = new Content();
+        content.set('text',text);
+        content.set('voiceURL',voiceURL);
+        content.set('URL',URL);
+        schedule.set('content',content);
+    }
+
+    if (remindDateStr)
+    {
+        //删除老通知
+        var push = schedule.get('push');
+        push.delete().then(function() {
+
+            //创建新通知
+            var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
+
+            createdPush([userId],push_time,'你有一个新的日程',function(push,error){
+
+                if (push && !error)
+                {
+                    var pushId = AV.Object.createWithoutData("_Notification", push.id);
+                    schedule.set('push',pushId);
+                    schedule.save().then(function(schedule) {
+
+                        response.success(schedule);
+
+                    }, function(error) {
+
+                        response.error(error);
+
+                    });
+                }
+                else
+                {
+                    response.error(error);
+                }
+            });
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
+    }
+});
+
+//删除日程
+AV.Cloud.define("delete_schedule", function(request, response){
+
+    _checkLogin(request, response);
+
+    var schedule = request.params.schedule;
+    if (!schedule)
     {
         response.error('参数错误');
     }
@@ -780,26 +781,21 @@ AV.Cloud.define("update_schedule", function(request, response){
     var push = schedule.get('push');
     push.delete().then(function() {
 
+        schedule.delete().then(function() {
 
+            response.success();
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
 
     }, function(error) {
 
         response.error(error);
 
     });
-
-    schedule.set('date',date);
-    schedule.set('type',type);
-    schedule.set('woeid',woeid);
-    schedule.set('place',place);
-    schedule.set('date',date);
-
-
-});
-
-//删除日程
-AV.Cloud.define("delete_schedule", function(request, response){
-
 });
 
 /****************
@@ -839,9 +835,6 @@ AV.Cloud.define("update_photo", function(request, response) {
         //图片对象
         var photo = new Photo();
 
-        //天气code
-        photo.set('weatherCode',weatherCode);
-
         //坐标
         var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
         photo.set('location',location);
@@ -851,8 +844,8 @@ AV.Cloud.define("update_photo", function(request, response) {
 
         //内容
         var content = new Content();
-//        if (voiceURL) content.set('voiceURL',voiceURL);
-//        if (text) content.set('text',text);
+        if (voiceURL) content.set('voiceURL',voiceURL);
+        if (text) content.set('text',text);
 
         photo.set('content',content);
 
@@ -860,11 +853,20 @@ AV.Cloud.define("update_photo", function(request, response) {
         photo.set('originalURL',imageURL);
         photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
 
-        console.log('查询'+temperature);
-        var temperatureQuery = new AV.Query(Temperature);
-        temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
-        temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
-        temperatureQuery.first().then(function(temperatureObj){
+        var weatherTypeQuery = new AV.Query(WeatherType);
+        weatherTypeQuery.equalTo('code',weatherCode);
+        weatherTypeQuery.first().then(function(weatherTypeObj){
+
+            var weatherTypeId = AV.Object.createWithoutData("WeatherType", weatherTypeObj.id);
+            //天气code
+            photo.set('weatherType',weatherTypeId);
+
+            console.log('查询'+temperature);
+
+            var temperatureQuery = new AV.Query(Temperature);
+            temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
+            temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
+            temperatureQuery.first().then(function(temperatureObj){
 
 //            console.dir(temperatureObj);
             var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
@@ -922,11 +924,14 @@ AV.Cloud.define("update_photo", function(request, response) {
             response.error(error);
 
         });
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
     }
 });
-
-
-
 
 //查看用户的相册
 AV.Cloud.define("search_user_photo", function(request, response) {
