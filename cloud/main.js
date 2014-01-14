@@ -150,11 +150,42 @@ function createdPush(users,push_time,alert,done){
         }, function(error) {
 
             done(null,error);
-
     });
-
-
 }
+
+/****************
+ 天气
+ *****************/
+var yahooCityNameToWoeidAPI = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid,name,country%20from%20geo.places%20where%20text=";
+AV.Cloud.define("get_woeid_from_city_name", function(request, response) {
+
+    var cityName = request.params.cityName;
+
+    AV.Cloud.httpRequest({
+        url: yahooCityNameToWoeidAPI+cityName,
+        success: function(httpResponse) {
+
+            parseString(httpResponse.text, function (error, result) {
+
+                console.dir(result);
+                if (result)
+                {
+                    cloopen2avos(request, response, user, result);
+                }
+                else
+                {
+                    response.error('Request failed with response code ' + error);
+                }
+            });
+
+        },
+        error: function(error){
+
+            response.error(error);
+
+        }
+    });
+});
 
 /****************
  用户资料
@@ -216,10 +247,12 @@ AV.Cloud.define("add_friend", function(request, response) {
     var user = request.user;
     var friend = request.params.friend;
 
-    user.relation('friends').add(friend);
+    var friendId = AV.Object.createWithoutData("_User", friend.id);
+    user.relation('friends').add(friendId);
     user.save().then(function(user) {
 
-        friend.relation('follow').add(user);
+        var userId = AV.Object.createWithoutData("_User", user.id);
+        friend.relation('follows').add(userId);
         friend.save().then(function(user) {
 
             response.success(user);
