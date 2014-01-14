@@ -78,6 +78,10 @@ function _checkLogin(request, response){
     }
 }
 
+function toDate(dateStr){
+   return moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate()
+}
+
 /****************
  通用函数
  *****************/
@@ -617,7 +621,7 @@ AV.Cloud.define("create_schedule", function(request, response){
 //    push_time.setSeconds(push_time.getSeconds()+remindTime);
 
 //    console.dir(remindDateStr);
-    var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
+    var push_time = toDate(remindDateStr);
 //    console.dir(push_time);
 
     //创建通知
@@ -631,7 +635,7 @@ AV.Cloud.define("create_schedule", function(request, response){
 //            var date_time = moment(new Date()).add('hours',8).toDate();
 //            var date_time = new Date();
 //            date_time.setSeconds(date_time.getSeconds());
-            var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
+            var date_time = toDate(dateStr);
 
             schedule.set('date',date_time);
             schedule.set('type',type);
@@ -715,7 +719,7 @@ AV.Cloud.define("update_schedule", function(request, response){
 
     if (dateStr)
     {
-        var date_time = moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
+        var date_time = toDate(dateStr);
         schedule.set('date',date_time);
     }
 
@@ -735,7 +739,7 @@ AV.Cloud.define("update_schedule", function(request, response){
         push.delete().then(function() {
 
             //创建新通知
-            var push_time = moment(remindDateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate();
+            var push_time = toDate(remindDateStr);
 
             createdPush([userId],push_time,'你有一个新的日程',function(push,error){
 
@@ -937,9 +941,19 @@ AV.Cloud.define("update_photo", function(request, response) {
 AV.Cloud.define("search_user_photo", function(request, response) {
 
     var user = request.params.user;
+    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var limit = request.params.limit;
 
     var photoQ = new AV.Query(Photo);
     _includeKeyWithPhoto(photoQ);
+
+    if (greaterThenDateStr)
+    {
+        var greaterThenDate = toDate(greaterThenDateStr);
+        photoQ.greaterThan('createdAt',greaterThenDate);
+    }
+
+    photoQ.limit(limit);
     photoQ.descending('createdAt');
     photoQ.equal('user',user);
     photoQ.find().then(function(photos) {
@@ -956,10 +970,21 @@ AV.Cloud.define("search_user_photo", function(request, response) {
 //查看全部图片 //0.官方 1.最新街拍 2.最热街拍 3.附近的
 AV.Cloud.define("search_all_photo", function(request, response) {
 
-    var type = request._params.type;
+    var type = request.params.type;
+    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var limit = request.params.limit;
 
     var photoQ = new AV.Query(Photo);
+
     _includeKeyWithPhoto(photoQ);
+
+    if (greaterThenDateStr)
+    {
+        var greaterThenDate = toDate(greaterThenDateStr);
+        photoQ.greaterThan('createdAt',greaterThenDate);
+    }
+
+    photoQ.limit(limit);
 
     if (type == 0)
     {
@@ -1034,9 +1059,11 @@ AV.Cloud.define("comment_photo", function(request, response) {
 });
 
 //查看照片评论
-AV.Cloud.define("get_photo_comments", function(request, response) {
+AV.Cloud.define("search_photo_comments", function(request, response) {
 
     var photo = request.params.photo;
+    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var limit = request.params.limit;
 
     if (!photo)
     {
@@ -1045,6 +1072,15 @@ AV.Cloud.define("get_photo_comments", function(request, response) {
 
     var commentQ = new AV.Query(Comment);
     _includeKeyWithComment(commentQ);
+
+    if (greaterThenDateStr)
+    {
+        var greaterThenDate = toDate(greaterThenDateStr);
+        commentQ.greaterThan('createdAt',greaterThenDate);
+    }
+
+    commentQ.limit(limit);
+
     commentQ.descending('createdAt');
     commentQ.equal('photo',photo);
     commentQ.find().then(function(comments) {
@@ -1059,7 +1095,7 @@ AV.Cloud.define("get_photo_comments", function(request, response) {
 });
 
 //查看照片评论数
-AV.Cloud.define("get_photo_comments_count", function(request, response) {
+AV.Cloud.define("search_photo_comments_count", function(request, response) {
 
     var photo = request.params.photo;
 
@@ -1084,7 +1120,7 @@ AV.Cloud.define("get_photo_comments_count", function(request, response) {
 });
 
 //收藏照片
-AV.Cloud.define("comment_photo", function(request, response) {
+AV.Cloud.define("favicon_photo", function(request, response) {
 
     _checkLogin(request, response);
 
@@ -1095,15 +1131,15 @@ AV.Cloud.define("comment_photo", function(request, response) {
         response.error('参数错误');
     }
 
-    user.set('faviconPhotos',photo);
+    user.relation('faviconPhotos').add(photo);
 
     user.save().then(function(user) {
 
-        photo.set('faviconUsers',user);
+        photo.relation('faviconUsers').add(user);
         photo.increment('hot');
         return photo.save();
 
-    }).then(function(photo) {
+    }).then(function() {
 
         response.success();
 
@@ -1115,36 +1151,83 @@ AV.Cloud.define("comment_photo", function(request, response) {
 
 });
 
-//查看收藏的照片
-AV.Cloud.define("comment_photo", function(request, response) {
+//查看照片的收藏者
+AV.Cloud.define("search_photo_favicon_users", function(request, response) {
 
-    _checkLogin(request, response);
+    var photo = request.params.photo;
+    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var limit = request.params.limit;
+
+    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
+    if (greaterThenDateStr)
+    {
+        var greaterThenDate = toDate(greaterThenDateStr);
+        PhotofaviconsQuery.greaterThan('createdAt',greaterThenDate);
+    }
+
+    PhotofaviconsQuery.limit(limit);
+
+    PhotofaviconsQuery.find().then(function(Photofavicons) {
+
+        response.success(Photofavicons);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
 });
 
-AV.Cloud.define("pm_test", function(request, response) {
+//查看照片的收藏者数
+AV.Cloud.define("search_photo_favicon_users_count", function(request, response) {
 
-    AV.Cloud.httpRequest({
-        url: 'http://www.pm25.in/api/querys/all_cities.json',
-        success: function(httpResponse) {
-            console.log(httpResponse.text);
-            parseString(httpResponse.text, function (error, result) {
-                if (result)
-                {
-                    console.dir(result);
-                     response.success(result);
-                }
-                else
-                {
-                    console.dir(error);
-                    response.error('Request failed with response code ' + error);
-                }
-            });
-        },
-        error: function(error){
+});
 
-            console.dir(error);
-            response.error(error);
+//查看我收藏的照片
+AV.Cloud.define("get_my_favicon_photos", function(request, response) {
 
-        }
+    _checkLogin(request, response);
+
+    var user = request.user;
+    var faviconPhotosQuery =  user.relation('faviconPhotos').query();
+    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var limit = request.params.limit;
+
+    if (greaterThenDateStr)
+    {
+        var greaterThenDate = toDate(greaterThenDateStr);
+        faviconPhotosQuery.greaterThan('createdAt',greaterThenDate);
+    }
+
+    faviconPhotosQuery.limit(limit);
+
+    faviconPhotosQuery.find().then(function(faviconPhotos) {
+
+        response.success(faviconPhotos);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
+});
+
+//查看我收藏的照片数
+AV.Cloud.define("get_my_favicon_photos_count", function(request, response) {
+
+    _checkLogin(request, response);
+
+    var user = request.user;
+
+    var faviconPhotosQuery =  user.relation('faviconPhotos').query;
+
+    faviconPhotosQuery.count().then(function(faviconPhotosCount) {
+
+        response.success(faviconPhotosCount);
+
+    }, function(error) {
+
+        response.error(error);
+
     });
 });
