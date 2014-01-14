@@ -1,9 +1,7 @@
 // Use AV.Cloud.define to define as many cloud functions as you want.
 // For example:
 
-var array = ["a1","a2","3"];
-
-
+var array = ['a1','2b','ccc'];
 
 AV.Cloud.define("hello", function(request, response) {
 
@@ -13,78 +11,40 @@ AV.Cloud.define("hello", function(request, response) {
     {
         console.log(array[i]);
     }
-
-//    var now = new Date();
-//    var nowStr = now.format("yyyy-MM-dd hh:mm:ss");
-////使用方法2:
-//    var testDate = new Date();
-//    var testStr = testDate.format("YYYY年MM月dd日hh小时mm分ss秒");
-//    alert(testStr);
-////示例：
-//    alert(new Date().Format("yyyy年MM月dd日"));
-//    alert(new Date().Format("MM/dd/yyyy"));
-//    alert(new Date().Format("yyyyMMdd"));
-//    alert(new Date().Format("yyyy-MM-dd hh:mm:ss"));
-
-
-
-    var myDate = new Date();
-//    myDate = formatDate("2014-1-18 20:30:00");
-    var push = AV.Push.send({
-        channels: [ "Public" ],
-//        push_time: "2014-01-08T20:30:00Z",
-        data: {
-            message: "测试测试测试"
-        }
-    });
-    console.dir(push);
 });
 
-AV.Cloud.define("test", function(request, response) {
-
-    console.log('test');
-    var test = request.params.test;
-    response.success(test+"Hello world!");
-});
-
-
+/****************
+ 通用AVObject
+ *****************/
 var User = AV.Object.extend('_User');
 var Installation = AV.Object.extend('_Installation');
-var Message = AV.Object.extend('Message');
-var Schedule = AV.Object.extend('Schedule');
 var Follow = AV.Object.extend('Follow');
 var Friend = AV.Object.extend('Friend');
+var Message = AV.Object.extend('Message');
+var Schedule = AV.Object.extend('Schedule');
 
-var Brand = AV.Object.extend('Brand');
-var WeatherType = AV.Object.extend('WeatherType');
+var Photo = AV.Object.extend('Photo');
 var Comment = AV.Object.extend('Comment');
 var Content = AV.Object.extend('Content');
-var Photo = AV.Object.extend('Photo');
+var Brand = AV.Object.extend('Brand');
 var Temperature = AV.Object.extend('Temperature');
 var WeatherType = AV.Object.extend('WeatherType');
 
 var Notification = AV.Object.extend('_Notification');
 
-var parseString = require('xml2js').parseString;
-var parse = require('xml2js').Parser();
-
-var moment = require('moment')
-
-function _checkLogin(request, response){
-
-    if (!request.user)
-    {
-        response.error('请先登录');
-    }
-}
-
-function toDate(dateStr){
-   return moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate()
-}
-
 /****************
  通用函数
  *****************/
+//xml
+var parseString = require('xml2js').parseString;
+
+//json
+var parse = require('xml2js').Parser();
+
+//时间
+var moment = require('moment');
+
+//photo查询
 function _includeKeyWithPhoto(photoQuery){
     photoQuery.include('content');
     photoQuery.include('brand');
@@ -92,6 +52,7 @@ function _includeKeyWithPhoto(photoQuery){
     photoQuery.include('user');
 }
 
+//comment查询
 function _includeKeyWithComment(commentQuery){
 
         commentQuery.include("user");
@@ -110,6 +71,80 @@ function newGuid()
             guid += "-";
     }
     return guid;
+}
+
+//检查是否登录
+function _checkLogin(request, response){
+
+    if (!request.user)
+    {
+        response.error('请先登录');
+    }
+}
+
+//字符串————>时间
+function toDate(dateStr){
+    return moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate()
+}
+
+//限制返回的调试
+function limitQuery(request,query,done){
+
+    var lessThenDateStr = request.params.lessThenDateStr;
+    var limit = request.params.limit;
+
+    if (lessThenDateStr)
+    {
+        var lessThenDate = toDate(lessThenDateStr);
+        query.lessThan('createdAt',lessThenDate);
+    }
+
+    query.limit(limit);
+
+    done(query);
+
+}
+
+//创建通知
+function createdPush(users,push_time,alert,done){
+
+    //创建通知
+    var installationQuery = new AV.Query(Installation);
+    installationQuery.containedIn('user',users);
+
+    console.dir(push_time);
+
+    var guid = newGuid();
+
+    AV.Push.send({
+        where: installationQuery,
+        data: {
+            alert: alert
+        },
+        push_time:push_time,
+        guid:guid
+    });
+
+    //获取通知
+    var pushQ = new AV.Query(Notification);
+    pushQ.equalTo('guid',guid);
+    pushQ.first().then(function(push) {
+
+        if (push)
+        {
+            var pushId = AV.Object.createWithoutData("_Notification", push.id);
+            done(pushId,null);
+        }
+        else
+        {
+            done(null,'push查询失败');
+        }
+
+    }, function(error) {
+
+        done(null,error);
+
+    });
 }
 
 /****************
@@ -161,10 +196,6 @@ AV.Cloud.define("update_user_info", function(request, response) {
 
     });
 });
-
-/**************
- 用户资料
- ***************/
 
 //关注
 AV.Cloud.define("add_friend", function(request, response) {
@@ -226,13 +257,16 @@ AV.Cloud.define("remove_friend", function(request, response) {
 
 });
 
-//关注人
-AV.Cloud.define("get_friend_list", function(request, response) {
+//我关注的人 (bug:没分页)
+AV.Cloud.define("get_friends", function(request, response) {
 
     _checkLogin(request, response);
 
     var user = request.user;
-    user.relation('friends').query().find().then(function(friends) {
+
+    var friendsQuery = user.relation('friends').query();
+
+    friendsQuery.find().then(function(friends) {
 
         response.success(friends);
 
@@ -244,8 +278,8 @@ AV.Cloud.define("get_friend_list", function(request, response) {
 
 });
 
-//关注人数
-AV.Cloud.define("get_friend_count", function(request, response) {
+//我关注的人数
+AV.Cloud.define("get_friends_count", function(request, response) {
 
     _checkLogin(request, response);
 
@@ -261,13 +295,16 @@ AV.Cloud.define("get_friend_count", function(request, response) {
     });
 });
 
-//粉丝
-AV.Cloud.define("get_follow_list", function(request, response) {
+//粉丝 (bug:没分页)
+AV.Cloud.define("get_follows", function(request, response) {
 
     _checkLogin(request, response);
 
     var user = request.user;
-    user.relation('follows').query().find().then(function(follows) {
+
+    var followsQuery = user.relation('follows').query();
+
+    followsQuery.find().then(function(follows) {
 
         response.success(follows);
 
@@ -279,7 +316,7 @@ AV.Cloud.define("get_follow_list", function(request, response) {
 });
 
 //粉丝数
-AV.Cloud.define("get_follow_count", function(request, response) {
+AV.Cloud.define("get_follows_count", function(request, response) {
 
     _checkLogin(request, response);
 
@@ -333,33 +370,6 @@ AV.Cloud.define("post_message", function(request, response){
     });
 });
 
-//查询两人间的私信
-function _getMessage(user1, user2 , successBlock, errorBlock){
-    var userId1 = AV.Object.createWithoutData("_User", user1.id);
-    var userId2 = AV.Object.createWithoutData("_User", user2.id);
-
-    var messQuery1 = new AV.Query(Message);
-    messQuery1.equalTo('fromUser',fromUserId);
-    messQuery1.equalTo('toUser',toUserId);
-
-//    messQuery1.equalTo('isRead',false);
-
-    var messQuery2 = new AV.Query(Message);
-    messQuery2.equalTo('fromUser',toUserId);
-    messQuery2.equalTo('toUser',fromUserId);
-
-    var messageQuery = AV.Query.or(messQuery1, messQuery2);
-    messageQuery.find().then(function(messages) {
-
-        successBlock(messages);
-
-    }, function(error) {
-
-        errorBlock(error);
-
-    });
-}
-
 //更改会话中未读状态为已读
 AV.Cloud.define("update_message_to_is_read", function(request, response){
 
@@ -401,7 +411,7 @@ AV.Cloud.define("update_message_to_is_read", function(request, response){
 });
 
 //获取与某用户的聊天记录
-AV.Cloud.define("get_all_message", function(request, response){
+AV.Cloud.define("search_messages_about_user", function(request, response){
 
     _checkLogin(request, response);
 
@@ -409,25 +419,43 @@ AV.Cloud.define("get_all_message", function(request, response){
     var toUser = request.params.toUser;
 
     //查询两人间的私信
-    _getMessage(fromUser, toUser, function(messages){
+    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
 
-        response.success(messages);
+    var messQuery1 = new AV.Query(Message);
+    messQuery1.equalTo('fromUser',fromUserId);
+    messQuery1.equalTo('toUser',toUserId);
 
-    }, function(error){
+//    messQuery1.equalTo('isRead',false);
 
-        response.error(error);
+    var messQuery2 = new AV.Query(Message);
+    messQuery2.equalTo('fromUser',toUserId);
+    messQuery2.equalTo('toUser',fromUserId);
+
+    var messageQuery = AV.Query.or(messQuery1, messQuery2);
+
+    limitQuery(request,messageQuery,function(messageQuery){
+
+        messageQuery.find().then(function(messages) {
+
+            response.success(messages);
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
 
     });
 });
 
 //获取与某用户的未读聊天记录
-AV.Cloud.define("get_all_message_for_unread", function(request, response){
+AV.Cloud.define("search_messages_about_user_for_unread", function(request, response){
 
     _checkLogin(request, response);
 
     var toUser = request.user;
     var fromUser = request.params.fromUser;
-    var lastDate = request.params.lastDate;
 
     var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
     var toUserId = AV.Object.createWithoutData("_User", toUser.id);
@@ -440,13 +468,17 @@ AV.Cloud.define("get_all_message_for_unread", function(request, response){
     messageQuery.equalTo('isRead',false);
     messageQuery.equalTo('isDelete',false);
 
-    messageQuery.find().then(function(messages) {
+    limitQuery(request,messageQuery,function(messageQuery){
 
-        response.success(messages);
+        messageQuery.find().then(function(messages) {
 
-    }, function(error) {
+            response.success(messages);
 
-        response.error(error);
+        }, function(error) {
+
+            response.error(error);
+
+        });
 
     });
 });
@@ -485,17 +517,22 @@ AV.Cloud.define("get_contacts", function(request, response){
     _checkLogin(request, response);
 
     var user = request.user;
-    var fromUser = request.params.toUser;
 
-    user.relation('contacts').find().then(function(contacts) {
+    var coutactsQuery = user.relation('contacts').query();
 
-        response.success(contacts);
+    limitQuery(request,coutactsQuery,function(coutactsQuery){
 
-    }, function(error) {
+        coutactsQuery.find().then(function(contacts) {
 
-        response.error(error);
+            response.success(contacts);
 
+        }, function(error) {
+
+            response.error(error);
+
+        });
     });
+
 });
 
 //删除联系人（同时将所有该联系人的消息delete）
@@ -526,9 +563,9 @@ AV.Cloud.define("delete_contacts", function(request, response){
 //            var user = request.user;
             toUser.relation('contacts').remove(fromUser);
 
-            return toUser.save().then(function(user) {
+            return toUser.save().then(function() {
 
-                response.success(user);
+                response.success();
 
             }, function(error) {
 
@@ -553,47 +590,6 @@ AV.Cloud.define("delete_contacts", function(request, response){
 /**************
  用户日程
  ***************/
-
-function createdPush(users,push_time,alert,done){
-
-    //创建通知
-    var installationQuery = new AV.Query(Installation);
-    installationQuery.containedIn('user',users);
-
-    console.dir(push_time);
-
-    var guid = newGuid();
-
-    AV.Push.send({
-        where: installationQuery,
-        data: {
-            alert: alert
-        },
-        push_time:push_time,
-        guid:guid
-    });
-
-    //获取通知
-    var pushQ = new AV.Query(Notification);
-    pushQ.equalTo('guid',guid);
-    pushQ.first().then(function(push) {
-
-        if (push)
-        {
-            var pushId = AV.Object.createWithoutData("_Notification", push.id);
-            done(pushId,null);
-        }
-        else
-        {
-            done(null,'push查询失败');
-        }
-
-    }, function(error) {
-
-        done(null,error);
-
-    });
-}
 
 //创建日程
 AV.Cloud.define("create_schedule", function(request, response){
@@ -676,7 +672,8 @@ AV.Cloud.define("my_schedule", function(request, response){
 
     var scheduleQuery = new AV.Query(Schedule);
     var user = request.user;
-    scheduleQuery.equalTo('user',user);
+    var userId = AV.Object.createWithoutData("_User", user.id);
+    scheduleQuery.equalTo('user',userId);
     scheduleQuery.find().then(function(schedules) {
 
         response.success(schedules);
@@ -941,16 +938,16 @@ AV.Cloud.define("update_photo", function(request, response) {
 AV.Cloud.define("search_user_photo", function(request, response) {
 
     var user = request.params.user;
-    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var lessThenDateStr = request.params.lessThenDateStr;
     var limit = request.params.limit;
 
     var photoQ = new AV.Query(Photo);
     _includeKeyWithPhoto(photoQ);
 
-    if (greaterThenDateStr)
+    if (lessThenDateStr)
     {
-        var greaterThenDate = toDate(greaterThenDateStr);
-        photoQ.greaterThan('createdAt',greaterThenDate);
+        var lessThenDate = toDate(lessThenDateStr);
+        photoQ.lessThan('createdAt',lessThenDate);
     }
 
     photoQ.limit(limit);
@@ -971,17 +968,17 @@ AV.Cloud.define("search_user_photo", function(request, response) {
 AV.Cloud.define("search_all_photo", function(request, response) {
 
     var type = request.params.type;
-    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var lessThenDateStr = request.params.lessThenDateStr;
     var limit = request.params.limit;
 
     var photoQ = new AV.Query(Photo);
 
     _includeKeyWithPhoto(photoQ);
 
-    if (greaterThenDateStr)
+    if (lessThenDateStr)
     {
-        var greaterThenDate = toDate(greaterThenDateStr);
-        photoQ.greaterThan('createdAt',greaterThenDate);
+        var lessThenDate = toDate(lessThenDateStr);
+        photoQ.lessThan('createdAt',lessThenDate);
     }
 
     photoQ.limit(limit);
@@ -1062,8 +1059,6 @@ AV.Cloud.define("comment_photo", function(request, response) {
 AV.Cloud.define("search_photo_comments", function(request, response) {
 
     var photo = request.params.photo;
-    var greaterThenDateStr = request.params.greaterThenDateStr;
-    var limit = request.params.limit;
 
     if (!photo)
     {
@@ -1073,25 +1068,22 @@ AV.Cloud.define("search_photo_comments", function(request, response) {
     var commentQ = new AV.Query(Comment);
     _includeKeyWithComment(commentQ);
 
-    if (greaterThenDateStr)
-    {
-        var greaterThenDate = toDate(greaterThenDateStr);
-        commentQ.greaterThan('createdAt',greaterThenDate);
-    }
+    limitQuery(request,commentQ,function(commentQ){
 
-    commentQ.limit(limit);
+        commentQ.descending('createdAt');
+        commentQ.equal('photo',photo);
+        commentQ.find().then(function(comments) {
 
-    commentQ.descending('createdAt');
-    commentQ.equal('photo',photo);
-    commentQ.find().then(function(comments) {
+            response.success(comments);
 
-        response.success(comments);
+        }, function(error) {
 
-    }, function(error) {
+            response.error(error);
 
-        response.error(error);
+        });
 
     });
+
 });
 
 //查看照片评论数
@@ -1126,6 +1118,7 @@ AV.Cloud.define("favicon_photo", function(request, response) {
 
     var user = request.user;
     var photo = request.params.photo;
+
     if (!photo)
     {
         response.error('参数错误');
@@ -1155,14 +1148,19 @@ AV.Cloud.define("favicon_photo", function(request, response) {
 AV.Cloud.define("search_photo_favicon_users", function(request, response) {
 
     var photo = request.params.photo;
-    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var lessThenDateStr = request.params.lessThenDateStr;
     var limit = request.params.limit;
 
-    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
-    if (greaterThenDateStr)
+    if (!photo)
     {
-        var greaterThenDate = toDate(greaterThenDateStr);
-        PhotofaviconsQuery.greaterThan('createdAt',greaterThenDate);
+       response.error('参数错误');
+    }
+
+    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
+    if (lessThenDateStr)
+    {
+        var lessThenDate = toDate(lessThenDateStr);
+        PhotofaviconsQuery.lessThan('createdAt',lessThenDate);
     }
 
     PhotofaviconsQuery.limit(limit);
@@ -1181,6 +1179,24 @@ AV.Cloud.define("search_photo_favicon_users", function(request, response) {
 //查看照片的收藏者数
 AV.Cloud.define("search_photo_favicon_users_count", function(request, response) {
 
+    var photo = request.params.photo;
+
+    if (!photo)
+    {
+        response.error('参数错误');
+    }
+
+    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
+
+    PhotofaviconsQuery.count().then(function(PhotofaviconsCount) {
+
+        response.success(PhotofaviconsCount);
+
+    }, function(error) {
+
+        response.error(error);
+
+    });
 });
 
 //查看我收藏的照片
@@ -1190,13 +1206,13 @@ AV.Cloud.define("get_my_favicon_photos", function(request, response) {
 
     var user = request.user;
     var faviconPhotosQuery =  user.relation('faviconPhotos').query();
-    var greaterThenDateStr = request.params.greaterThenDateStr;
+    var lessThenDateStr = request.params.lessThenDateStr;
     var limit = request.params.limit;
 
-    if (greaterThenDateStr)
+    if (lessThenDateStr)
     {
-        var greaterThenDate = toDate(greaterThenDateStr);
-        faviconPhotosQuery.greaterThan('createdAt',greaterThenDate);
+        var lessThenDate = toDate(lessThenDateStr);
+        faviconPhotosQuery.lessThan('createdAt',lessThenDate);
     }
 
     faviconPhotosQuery.limit(limit);
