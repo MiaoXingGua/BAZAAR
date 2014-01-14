@@ -124,34 +124,34 @@ function createdPush(users,push_time,alert,done){
         push_time:push_time,
         guid:guid
 
-    }).then(function(user) {
+    }).then(function() {
 
-            //获取通知
-            var pushQ = new AV.Query(Notification);
-            pushQ.equalTo('guid',guid);
-            pushQ.first().then(function(push) {
+        //获取通知
+        var pushQ = new AV.Query(Notification);
+        pushQ.equalTo('guid',guid);
+        pushQ.first().then(function(push) {
 
-                if (push)
-                {
-                    var pushId = AV.Object.createWithoutData("_Notification", push.id);
-                    done(pushId,null);
-                }
-                else
-                {
-                    done(null,'push查询失败');
-                }
-
-            }, function(error) {
-
-                done(null,error);
-
-            });
+            if (push)
+            {
+                var pushId = AV.Object.createWithoutData("_Notification", push.id);
+                done(pushId,null);
+            }
+            else
+            {
+                done(null,'push查询失败');
+            }
 
         }, function(error) {
 
             done(null,error);
 
         });
+
+        }, function(error) {
+
+            done(null,error);
+
+    });
 
 
 }
