@@ -123,28 +123,37 @@ function createdPush(users,push_time,alert,done){
         },
         push_time:push_time,
         guid:guid
-    });
 
-    //获取通知
-    var pushQ = new AV.Query(Notification);
-    pushQ.equalTo('guid',guid);
-    pushQ.first().then(function(push) {
+    }).then(function(user) {
 
-        if (push)
-        {
-            var pushId = AV.Object.createWithoutData("_Notification", push.id);
-            done(pushId,null);
-        }
-        else
-        {
-            done(null,'push查询失败');
-        }
+            //获取通知
+            var pushQ = new AV.Query(Notification);
+            pushQ.equalTo('guid',guid);
+            pushQ.first().then(function(push) {
 
-    }, function(error) {
+                if (push)
+                {
+                    var pushId = AV.Object.createWithoutData("_Notification", push.id);
+                    done(pushId,null);
+                }
+                else
+                {
+                    done(null,'push查询失败');
+                }
 
-        done(null,error);
+            }, function(error) {
 
-    });
+                done(null,error);
+
+            });
+
+        }, function(error) {
+
+            done(null,error);
+
+        });
+
+
 }
 
 /****************
@@ -185,6 +194,8 @@ AV.Cloud.define("update_user_info", function(request, response) {
     {
         user.set('city',city);
     }
+
+    user.set('isCompleteSignUp',true);
 
     user.save().then(function(user) {
 
@@ -425,12 +436,12 @@ AV.Cloud.define("search_messages_about_user", function(request, response){
     var messQuery1 = new AV.Query(Message);
     messQuery1.equalTo('fromUser',fromUserId);
     messQuery1.equalTo('toUser',toUserId);
-
-//    messQuery1.equalTo('isRead',false);
+    messQuery1.equalTo('isDelete',false);
 
     var messQuery2 = new AV.Query(Message);
     messQuery2.equalTo('fromUser',toUserId);
     messQuery2.equalTo('toUser',fromUserId);
+    messQuery2.equalTo('isDelete',false);
 
     var messageQuery = AV.Query.or(messQuery1, messQuery2);
 
@@ -463,7 +474,6 @@ AV.Cloud.define("search_messages_about_user_for_unread", function(request, respo
     var messageQuery = new AV.Query(Message);
     messageQuery.equalTo('fromUser',fromUserId);
     messageQuery.equalTo('toUser',toUserId);
-    messageQuery.greaterThan('createdAt',lastDate);
     messageQuery.descending('createdAt');
     messageQuery.equalTo('isRead',false);
     messageQuery.equalTo('isDelete',false);
