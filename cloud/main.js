@@ -247,11 +247,12 @@ AV.Cloud.define("add_friend", function(request, response) {
     var user = request.user;
     var friend = request.params.friend;
 
-    console.dir(user);
-    console.dir(friend);
+//    console.dir(user);
+//    console.dir(friend);
 
     console.log('1');
     var friendId = AV.Object.createWithoutData("_User", friend);
+    console.log(friendId);
     user.relation('friends').add(friendId);
     user.save().then(function(user) {
         console.log('2');
