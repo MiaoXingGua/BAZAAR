@@ -158,10 +158,12 @@ function createdPush(users,push_time,alert,done){
  *****************/
 AV.Cloud.define("datetime", function(request, response) {
 
-    var timestamp = Date.parse(new Date());
-    cosole.log(timestamp);
+//    var timestamp = Date.parse(new Date());
+    var timestamp = new Date().getTime();
+    console.log(timestamp);
     response.success(timestamp);
 });
+
 var yahooCityNameToWoeidAPI = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid,name,country%20from%20geo.places%20where%20text=";
 AV.Cloud.define("get_woeid_from_city_name", function(request, response) {
 
