@@ -156,6 +156,10 @@ function createdPush(users,push_time,alert,done){
 /****************
  天气
  *****************/
+AV.Cloud.define("date", function(request, response) {
+    response.success(new Date());
+});
+
 var yahooCityNameToWoeidAPI = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid,name,country%20from%20geo.places%20where%20text=";
 AV.Cloud.define("get_woeid_from_city_name", function(request, response) {
 
@@ -732,25 +736,25 @@ AV.Cloud.define("create_schedule", function(request, response){
 });
 
 //查看全部日程
-AV.Cloud.define("my_schedule", function(request, response){
-
-    _checkLogin(request, response);
-
-    var scheduleQuery = new AV.Query(Schedule);
-    var user = request.user;
-    var userId = AV.Object.createWithoutData("_User", user.id);
-    scheduleQuery.equalTo('user',userId);
-    scheduleQuery.find().then(function(schedules) {
-
-        response.success(schedules);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-
-});
+//AV.Cloud.define("my_schedule", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var scheduleQuery = new AV.Query(Schedule);
+//    var user = request.user;
+//    var userId = AV.Object.createWithoutData("_User", user.id);
+//    scheduleQuery.equalTo('user',userId);
+//    scheduleQuery.find().then(function(schedules) {
+//
+//        response.success(schedules);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//
+//});
 
 //编辑日程
 AV.Cloud.define("update_schedule", function(request, response){
@@ -835,35 +839,35 @@ AV.Cloud.define("update_schedule", function(request, response){
 });
 
 //删除日程
-AV.Cloud.define("delete_schedule", function(request, response){
-
-    _checkLogin(request, response);
-
-    var schedule = request.params.schedule;
-    if (!schedule)
-    {
-        response.error('参数错误');
-    }
-
-    var push = schedule.get('push');
-    push.delete().then(function() {
-
-        schedule.delete().then(function() {
-
-            response.success();
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("delete_schedule", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var schedule = request.params.schedule;
+//    if (!schedule)
+//    {
+//        response.error('参数错误');
+//    }
+//
+//    var push = schedule.get('push');
+//    push.delete().then(function() {
+//
+//        schedule.delete().then(function() {
+//
+//            response.success();
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 /****************
  图片
@@ -1001,87 +1005,87 @@ AV.Cloud.define("update_photo", function(request, response) {
 });
 
 //查看用户的相册
-AV.Cloud.define("search_user_photo", function(request, response) {
-
-    var user = request.params.user;
-    var lessThenDateStr = request.params.lessThenDateStr;
-    var limit = request.params.limit;
-
-    var photoQ = new AV.Query(Photo);
-    _includeKeyWithPhoto(photoQ);
-
-    if (lessThenDateStr)
-    {
-        var lessThenDate = toDate(lessThenDateStr);
-        photoQ.lessThan('createdAt',lessThenDate);
-    }
-
-    photoQ.limit(limit);
-    photoQ.descending('createdAt');
-    photoQ.equal('user',user);
-    photoQ.find().then(function(photos) {
-
-        response.success(photos);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("search_user_photo", function(request, response) {
+//
+//    var user = request.params.user;
+//    var lessThenDateStr = request.params.lessThenDateStr;
+//    var limit = request.params.limit;
+//
+//    var photoQ = new AV.Query(Photo);
+//    _includeKeyWithPhoto(photoQ);
+//
+//    if (lessThenDateStr)
+//    {
+//        var lessThenDate = toDate(lessThenDateStr);
+//        photoQ.lessThan('createdAt',lessThenDate);
+//    }
+//
+//    photoQ.limit(limit);
+//    photoQ.descending('createdAt');
+//    photoQ.equal('user',user);
+//    photoQ.find().then(function(photos) {
+//
+//        response.success(photos);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //查看全部图片 //0.官方 1.最新街拍 2.最热街拍 3.附近的
-AV.Cloud.define("search_all_photo", function(request, response) {
-
-    var type = request.params.type;
-    var lessThenDateStr = request.params.lessThenDateStr;
-    var limit = request.params.limit;
-
-    var photoQ = new AV.Query(Photo);
-
-    _includeKeyWithPhoto(photoQ);
-
-    if (lessThenDateStr)
-    {
-        var lessThenDate = toDate(lessThenDateStr);
-        photoQ.lessThan('createdAt',lessThenDate);
-    }
-
-    photoQ.limit(limit);
-
-    if (type == 0)
-    {
-        photoQ.equal('isOfficial',true);
-        photoQ.descending('updateAt');
-    }
-    else if (type == 1)
-    {
-        photoQ.equal('isOfficial',false);
-        photoQ.descending('createdAt');
-    }
-    else if (type == 2)
-    {
-        photoQ.equal('isOfficial',false);
-        photoQ.descending('hot');
-    }
-    else if (type == 3)
-    {
-        photoQ.equal('isOfficial',false);
-        var latitude = request.params.latitude;
-        var longitude = request.params.longitude;
-        var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
-        photoQ.near('location',location);
-    }
-    photoQ.find().then(function(photos) {
-
-        response.success(photos);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("search_all_photo", function(request, response) {
+//
+//    var type = request.params.type;
+//    var lessThenDateStr = request.params.lessThenDateStr;
+//    var limit = request.params.limit;
+//
+//    var photoQ = new AV.Query(Photo);
+//
+//    _includeKeyWithPhoto(photoQ);
+//
+//    if (lessThenDateStr)
+//    {
+//        var lessThenDate = toDate(lessThenDateStr);
+//        photoQ.lessThan('createdAt',lessThenDate);
+//    }
+//
+//    photoQ.limit(limit);
+//
+//    if (type == 0)
+//    {
+//        photoQ.equal('isOfficial',true);
+//        photoQ.descending('updatedAt');
+//    }
+//    else if (type == 1)
+//    {
+//        photoQ.equal('isOfficial',false);
+//        photoQ.descending('createdAt');
+//    }
+//    else if (type == 2)
+//    {
+//        photoQ.equal('isOfficial',false);
+//        photoQ.descending('hot');
+//    }
+//    else if (type == 3)
+//    {
+//        photoQ.equal('isOfficial',false);
+//        var latitude = request.params.latitude;
+//        var longitude = request.params.longitude;
+//        var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
+//        photoQ.near('location',location);
+//    }
+//    photoQ.find().then(function(photos) {
+//
+//        response.success(photos);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //评论照片
 AV.Cloud.define("comment_photo", function(request, response) {
