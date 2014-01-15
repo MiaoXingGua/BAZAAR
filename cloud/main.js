@@ -239,151 +239,151 @@ AV.Cloud.define("update_user_info", function(request, response) {
     });
 });
 
-//关注
-AV.Cloud.define("add_friend", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    var friend = request.params.friend;
-
-//    console.dir(user);
-//    console.dir(friend);
-
-    console.log('1');
-    var friendId = AV.Object.createWithoutData("_User", friend);
-    console.log(friendId);
-    user.relation('friends').add(friendId);
-    user.save().then(function(user) {
-        console.log('2');
-        console.dir(user);
-
-        var userId = AV.Object.createWithoutData("_User", user.id);
-        friend.relation('follows').add(userId);
-        friend.save().then(function(user) {
-            console.log('3');
-            console.dir(user);
-
-            response.success(user);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-
-});
-
-//解除关注
-AV.Cloud.define("remove_friend", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    var friend = request.params.friend;
-
-    user.relation('friends').remove(friend);
-    user.save().then(function(user) {
-
-        friend.relation('follow').remove(user);
-        friend.save().then(function(user) {
-
-            response.success(user);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-
-});
-
-//我关注的人 (bug:没分页)
-AV.Cloud.define("get_friends", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-
-    var friendsQuery = user.relation('friends').query();
-
-    friendsQuery.find().then(function(friends) {
-
-        response.success(friends);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-
-});
-
-//我关注的人数
-AV.Cloud.define("get_friends_count", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    user.relation('friends').query().count().then(function(count) {
-
-        response.success(count);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
-
-//粉丝 (bug:没分页)
-AV.Cloud.define("get_follows", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-
-    var followsQuery = user.relation('follows').query();
-
-    followsQuery.find().then(function(follows) {
-
-        response.success(follows);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
-
-//粉丝数
-AV.Cloud.define("get_follows_count", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    user.relation('follows').count().then(function(count) {
-
-        response.success(count);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+////关注
+//AV.Cloud.define("add_friend", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    var friend = request.params.friend;
+//
+////    console.dir(user);
+////    console.dir(friend);
+//
+//    console.log('1');
+//    var friendId = AV.Object.createWithoutData("_User", friend);
+//    console.log(friendId);
+//    user.relation('friends').add(friendId);
+//    user.save().then(function(user) {
+//        console.log('2');
+//        console.dir(user);
+//
+//        var userId = AV.Object.createWithoutData("_User", user.id);
+//        friend.relation('follows').add(userId);
+//        friend.save().then(function(user) {
+//            console.log('3');
+//            console.dir(user);
+//
+//            response.success(user);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//
+//});
+//
+////解除关注
+//AV.Cloud.define("remove_friend", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    var friend = request.params.friend;
+//
+//    user.relation('friends').remove(friend);
+//    user.save().then(function(user) {
+//
+//        friend.relation('follow').remove(user);
+//        friend.save().then(function(user) {
+//
+//            response.success(user);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//
+//});
+//
+////我关注的人 (bug:没分页)
+//AV.Cloud.define("get_friends", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//
+//    var friendsQuery = user.relation('friends').query();
+//
+//    friendsQuery.find().then(function(friends) {
+//
+//        response.success(friends);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//
+//});
+//
+////我关注的人数
+//AV.Cloud.define("get_friends_count", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    user.relation('friends').query().count().then(function(count) {
+//
+//        response.success(count);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
+//
+////粉丝 (bug:没分页)
+//AV.Cloud.define("get_follows", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//
+//    var followsQuery = user.relation('follows').query();
+//
+//    followsQuery.find().then(function(follows) {
+//
+//        response.success(follows);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
+//
+////粉丝数
+//AV.Cloud.define("get_follows_count", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    user.relation('follows').count().then(function(count) {
+//
+//        response.success(count);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 /**************
  用户消息
@@ -414,7 +414,16 @@ AV.Cloud.define("post_message", function(request, response){
     message.set('content',content);
     message.save().then(function(message) {
 
-        response.success(message);
+        toUser.relation('contacts').add(fromUser);
+        toUser.save().then(function(message) {
+
+            response.success(message);
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
 
     }, function(error) {
 
@@ -464,43 +473,43 @@ AV.Cloud.define("update_message_to_is_read", function(request, response){
 });
 
 //获取与某用户的聊天记录
-AV.Cloud.define("search_messages_about_user", function(request, response){
-
-    _checkLogin(request, response);
-
-    var fromUser = request.user;
-    var toUser = request.params.toUser;
-
-    //查询两人间的私信
-    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
-
-    var messQuery1 = new AV.Query(Message);
-    messQuery1.equalTo('fromUser',fromUserId);
-    messQuery1.equalTo('toUser',toUserId);
-    messQuery1.equalTo('isDelete',false);
-
-    var messQuery2 = new AV.Query(Message);
-    messQuery2.equalTo('fromUser',toUserId);
-    messQuery2.equalTo('toUser',fromUserId);
-    messQuery2.equalTo('isDelete',false);
-
-    var messageQuery = AV.Query.or(messQuery1, messQuery2);
-
-    limitQuery(request,messageQuery,function(messageQuery){
-
-        messageQuery.find().then(function(messages) {
-
-            response.success(messages);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    });
-});
+//AV.Cloud.define("search_messages_about_user", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var fromUser = request.user;
+//    var toUser = request.params.toUser;
+//
+//    //查询两人间的私信
+//    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+//    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
+//
+//    var messQuery1 = new AV.Query(Message);
+//    messQuery1.equalTo('fromUser',fromUserId);
+//    messQuery1.equalTo('toUser',toUserId);
+//    messQuery1.equalTo('isDelete',false);
+//
+//    var messQuery2 = new AV.Query(Message);
+//    messQuery2.equalTo('fromUser',toUserId);
+//    messQuery2.equalTo('toUser',fromUserId);
+//    messQuery2.equalTo('isDelete',false);
+//
+//    var messageQuery = AV.Query.or(messQuery1, messQuery2);
+//
+//    limitQuery(request,messageQuery,function(messageQuery){
+//
+//        messageQuery.find().then(function(messages) {
+//
+//            response.success(messages);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    });
+//});
 
 //获取与某用户的未读聊天记录
 AV.Cloud.define("search_messages_about_user_for_unread", function(request, response){
@@ -658,6 +667,11 @@ AV.Cloud.define("create_schedule", function(request, response){
     var voiceURL = request.params.voiceURL;
     var URL = request.params.URL;
     var remindDateStr = request.params.remindDateStr;
+
+    console.log('dateStr'+dateStr);
+    console.log('remindDateStr'+remindDateStr);
+    console.log('woeid'+woeid);
+    console.log('place'+place);
 
     if (!(user && dateStr && remindDateStr && woeid && place))
     {
