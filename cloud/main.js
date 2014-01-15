@@ -157,7 +157,7 @@ function createdPush(users,push_time,alert,done){
  天气
  *****************/
 AV.Cloud.define("date", function(request, response) {
-    response.success(moment(new Date()).toDate());
+    response.success(moment(new Date(), "YYYY-MM-DD HH:mm:ss").toDate());
 });
 
 var yahooCityNameToWoeidAPI = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid,name,country%20from%20geo.places%20where%20text=";
