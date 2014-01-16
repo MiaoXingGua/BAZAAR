@@ -943,12 +943,6 @@ AV.Cloud.define("update_photo", function(request, response) {
     var photos = [];
     console.log('开始');
 
-//    var requests = {};
-
-//    for (var i in imageURLs)
-//    {
-//        requests[imageURLs[i]] = imageURLs[i];
-//    }
 
 
     for (var i in imageURLs)
@@ -1002,7 +996,6 @@ AV.Cloud.define("update_photo", function(request, response) {
                 url: imageURL+'?imageInfo',
                 success: function(httpResponse) {
 
-//                    delete requests[imageURL];
                     console.log(httpResponse.text);
 //                    console.log('图片大小'+httpResponse.width,httpResponse.height);
 //                    JSON.parse(httpResponse.text, function (error, result) {
@@ -1016,7 +1009,7 @@ AV.Cloud.define("update_photo", function(request, response) {
                             photos.push(photo);
 //                            console.log('图片数量'+photos.length);
 
-                            console.log('保存图片');
+                            console.log('保存'+photos.count);
                             if (photos.length == imageURLs.length)
                             {
                                 console.log('结束');
