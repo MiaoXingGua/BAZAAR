@@ -970,84 +970,83 @@ AV.Cloud.define("update_photo", function(request, response) {
         photo.set('originalURL',imageURL);
         photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
 
-        var weatherTypeQuery = new AV.Query(WeatherType);
-        weatherTypeQuery.equalTo('code',weatherCode);
-        weatherTypeQuery.first().then(function(weatherTypeObj){
+        console.log('请求'+imageURL);
+        //图片尺寸
+        AV.Cloud.httpRequest({
+            url: imageURL+'?imageInfo',
+            success: function(httpResponse) {
 
-            var weatherTypeId = AV.Object.createWithoutData("WeatherType", weatherTypeObj.id);
-            //天气code
-            photo.set('weatherType',weatherTypeId);
+//                console.log(httpResponse.text);
 
-            console.log('查询'+temperature);
-
-            var temperatureQuery = new AV.Query(Temperature);
-            temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
-            temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
-            temperatureQuery.first().then(function(temperatureObj){
-
-//            console.dir(temperatureObj);
-            var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
-            //气温种类
-            photo.set('temperature',temperatureId);
-
-            console.log('请求');
-            //图片尺寸
-            AV.Cloud.httpRequest({
-                url: imageURL+'?imageInfo',
-                success: function(httpResponse) {
-
-                    console.log(httpResponse.text);
-//                    console.log('图片大小'+httpResponse.width,httpResponse.height);
 //                    JSON.parse(httpResponse.text, function (error, result) {
-                    var result = JSON.parse(httpResponse.text)
-                        if (result)
-                        {
+                var result = JSON.parse(httpResponse.text);
+                if (result)
+                {
 //                            console.log('图片大小'+result.width,result.height);
-                            photo.set('width',result.width);
-                            photo.set('height',result.height);
+                        photo.set('width',result.width);
+                        photo.set('height',result.height);
 
-                            photos.push(photo);
-//                            console.log('图片数量'+photos.length);
+                        var weatherTypeQuery = new AV.Query(WeatherType);
+                        weatherTypeQuery.equalTo('code',weatherCode);
+                        weatherTypeQuery.first().then(function(weatherTypeObj){
 
-                            console.log('保存'+photos.count);
-                            if (photos.length == imageURLs.length)
-                            {
-                                console.log('结束');
-                                AV.Object.saveAll(photos).then(function(photos) {
+                                var weatherTypeId = AV.Object.createWithoutData("WeatherType", weatherTypeObj.id);
+                                //天气code
+                                photo.set('weatherType',weatherTypeId);
 
-                                    response.success(photos);
+                                console.log('查询'+temperature);
+
+                                var temperatureQuery = new AV.Query(Temperature);
+                                temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
+                                temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
+                                temperatureQuery.first().then(function(temperatureObj){
+
+
+                                    var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
+                                    //气温种类
+                                    photo.set('temperature',temperatureId);
+
+                                    photos.push(photo);
+
+                                    console.log('保存'+photos.count);
+                                    if (photos.length == imageURLs.length)
+                                    {
+                                        console.log('结束');
+                                        AV.Object.saveAll(photos).then(function(photos) {
+
+                                            response.success(photos);
+
+                                        }, function(error) {
+
+                                            response.error(error);
+
+                                        });
+                                    }
 
                                 }, function(error) {
 
                                     response.error(error);
 
                                 });
-                            }
-                        }
-                        else
-                        {
+
+
+                    },function(error){
                             response.error(error);
-                        }
-//                    });
-                },
-                error: function(error){
-
-                    response.error(error);
-
+                        });
                 }
-            });
+                else
+                {
+                    response.error(error);
+                }
 
-        }, function(error) {
+            },
+            error: function(error){
 
-            response.error(error);
+                response.error(error);
 
+            }
         });
 
-        }, function(error) {
-
-            response.error(error);
-
-        });
     }
 });
 
