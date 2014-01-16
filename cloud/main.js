@@ -776,12 +776,14 @@ AV.Cloud.define("update_schedule", function(request, response){
     var voiceURL = request.params.voiceURL;
     var URL = request.params.URL;
     var remindDateStr = request.params.remindDateStr;
-    var schedule = request.params.schedule;
+    var scheduleId = request.params.scheduleId;
 
-    if (!schedule)
+    if (!scheduleId)
     {
         response.error('参数错误');
     }
+
+    var schedule = AV.Object.createWithoutData("Schedule", scheduleId);
 
     //修改属性
     schedule.set('type',type);
