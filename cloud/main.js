@@ -778,6 +778,8 @@ AV.Cloud.define("update_schedule", function(request, response){
     var remindDateStr = request.params.remindDateStr;
     var scheduleId = request.params.scheduleId;
 
+    console.log("scheduleId:"+scheduleId);
+
     if (!scheduleId)
     {
         response.error('参数错误');
