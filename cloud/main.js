@@ -791,6 +791,7 @@ AV.Cloud.define("created_push", function(request, response){
         {
             response.error(error);
         }
+    });
 
 });
 
@@ -935,15 +936,8 @@ AV.Cloud.define("update_photo", function(request, response) {
         response.error('缺少必要参数');
     }
 
-//    if (!(text || voiceURL))
-//    {
-//        response.error('缺少必要参数');
-//    }
-
     var photos = [];
     console.log('开始');
-
-
 
     for (var i in imageURLs)
     {
