@@ -160,7 +160,7 @@ AV.Cloud.define("datetime", function(request, response) {
 
 //    var timestamp = Date.parse(new Date());
     var timestamp = new Date().getTime();
-    console.log(timestamp);
+//    console.log(timestamp);
     response.success(timestamp);
 });
 
@@ -676,10 +676,10 @@ AV.Cloud.define("create_schedule", function(request, response){
     var URL = request.params.URL;
     var remindDateStr = request.params.remindDateStr;
 
-    console.log('dateStr'+dateStr);
-    console.log('remindDateStr'+remindDateStr);
-    console.log('woeid'+woeid);
-    console.log('place'+place);
+//    console.log('dateStr'+dateStr);
+//    console.log('remindDateStr'+remindDateStr);
+//    console.log('woeid'+woeid);
+//    console.log('place'+place);
 
     if (!(user && dateStr && remindDateStr && woeid && place))
     {
@@ -690,9 +690,9 @@ AV.Cloud.define("create_schedule", function(request, response){
 //    var push_time = new Date();
 //    push_time.setSeconds(push_time.getSeconds()+remindTime);
 
-    console.dir(remindDateStr);
+//    console.dir(remindDateStr);
     var push_time = toDate(remindDateStr);
-    console.dir(push_time);
+//    console.dir(push_time);
 
     //创建通知
     createdPush([userId],push_time,'你有一个新的日程',function(push,error){
@@ -712,6 +712,7 @@ AV.Cloud.define("create_schedule", function(request, response){
             schedule.set('woeid',woeid);
             schedule.set('place',place);
             schedule.set('user',userId);
+            schedule.set('remindDate',push_time);
 
             var content = new Content();
             content.set('text',text);
@@ -818,6 +819,7 @@ AV.Cloud.define("update_schedule", function(request, response){
                 {
                     var pushId = AV.Object.createWithoutData("_Notification", push.id);
                     schedule.set('push',pushId);
+                    schedule.set('remindDate',push_time);
                     schedule.save().then(function(schedule) {
 
                         response.success(schedule);
