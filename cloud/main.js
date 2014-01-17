@@ -891,7 +891,7 @@ AV.Cloud.define("delete_push", function(request, response){
         response.error('参数错误');
     }
 
-    var pushId = AV.Object.createWithoutData("_Notification", push.id);
+    var pushId = AV.Object.createWithoutData("_Notification", pushStr);
     pushId.delete().then(function() {
 
             response.success('参数错误');
