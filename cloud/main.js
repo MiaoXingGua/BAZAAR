@@ -32,6 +32,10 @@ var WeatherType = AV.Object.extend('WeatherType');
 
 var Notification = AV.Object.extend('_Notification');
 
+var AirQualityIndex = AV.Object.extend('AirQualityIndex');
+
+var PM25AppKey = "siv7h7ydxAEBoQw5Z3Lj";
+
 /****************
  通用函数
  *****************/
@@ -105,6 +109,87 @@ function limitQuery(request,query,done){
 
 }
 
+//AV.Cloud.setInterval('PM25', 60*20, function(){
+AV.Cloud.define("PM25", function(request, response) {
+
+    console.log('开始请求PM25');
+
+
+    AV.Cloud.httpRequest({
+        url: "http://www.pm25.in/api/querys/all_cities.json?token="+PM25AppKey,
+        success: function(httpResponse) {
+
+            console.log('请求PM25成功');
+            try {
+                console.dir(httpResponse.text);
+                var resultInfo = JSON.parse(httpResponse.text);
+
+                if (resultInfo)
+                {
+                    var aqis = new Array();
+                    console.dir(resultInfo);
+                    for (var i in resultInfo)
+                    {
+                        var aqiInfo = resultInfo[i];
+
+                        console.dir(aqiInfo);
+                        console.dir(aqiInfo.area);
+
+                        var aqi = new AirQualityIndex();
+                        aqi.set('area', aqiInfo.area);
+                        aqi.set('position_name', aqiInfo.position_name);
+                        aqi.set('station_code', aqiInfo.station_code);
+                        aqi.set('so2', aqiInfo.so2);
+                        aqi.set('so2_24h', aqiInfo.so2_24h);
+                        aqi.set('no2', aqiInfo.no2);
+                        aqi.set('no2_24h', aqiInfo.no2_24h);
+                        aqi.set('pm10', aqiInfo.pm10);
+                        aqi.set('pm10_24h', aqiInfo.pm10_24h);
+                        aqi.set('co', aqiInfo.co);
+                        aqi.set('co_24h', aqiInfo.co_24h);
+                        aqi.set('o3', aqiInfo.o3);
+                        aqi.set('o3_24h', aqiInfo.o3_24h);
+                        aqi.set('o3_8h', aqiInfo.o3_8h);
+                        aqi.set('o3_8h_24h', aqiInfo.o3_8h_24h);
+                        aqi.set('pm2_5', aqiInfo.pm2_5);
+                        aqi.set('pm2_5_24h', aqiInfo.pm2_5_24h);
+                        aqi.set('primary_pollutant', aqiInfo.primary_pollutant);
+                        aqi.set('quality', aqiInfo.quality);
+                        aqi.set('time_point', aqiInfo.time_point);
+                        aqis.push(aqi);
+                    }
+                    AV.Object.saveAll(aqis, function(list, error) {
+                        if (list) {
+                            // All the objects were saved.
+                            console.log('保存PM25成功',list.length);
+
+                        } else {
+                            // An error occurred.
+                            console.log('保存PM25失败1');
+                            console.dir(error);
+                        }
+                    });
+                }
+                else
+                {
+                    console.dir("resultInfo : "+resultInfo.result);
+                }
+            }
+            catch(error) {
+
+                console.log('保存PM25失败2');
+                console.dir(error);
+            }
+        },
+        error: function(error) {
+
+            console.log('保存PM25失败3');
+            console.dir(error);
+        }
+    });
+
+});
+
 //创建通知
 function createdPush(users,push_time,alert,done){
 
@@ -160,92 +245,92 @@ AV.Cloud.define("datetime", function(request, response) {
 
 //    var timestamp = Date.parse(new Date());
     var timestamp = new Date().getTime();
-//    console.log(timestamp);
+    console.log(timestamp);
     response.success(timestamp);
 });
 
-var yahooCityNameToWoeidAPI = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid,name,country%20from%20geo.places%20where%20text=";
-AV.Cloud.define("get_woeid_from_city_name", function(request, response) {
-
-    var cityName = request.params.cityName;
-
-    AV.Cloud.httpRequest({
-        url: yahooCityNameToWoeidAPI+cityName,
-        success: function(httpResponse) {
-
-            parseString(httpResponse.text, function (error, result) {
-
-                console.dir(result);
-                if (result)
-                {
-                    cloopen2avos(request, response, user, result);
-                }
-                else
-                {
-                    response.error('Request failed with response code ' + error);
-                }
-            });
-
-        },
-        error: function(error){
-
-            response.error(error);
-
-        }
-    });
-});
+//var yahooCityNameToWoeidAPI = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid,name,country%20from%20geo.places%20where%20text=";
+//AV.Cloud.define("get_woeid_from_city_name", function(request, response) {
+//
+//    var cityName = request.params.cityName;
+//
+//    AV.Cloud.httpRequest({
+//        url: yahooCityNameToWoeidAPI+cityName,
+//        success: function(httpResponse) {
+//
+//            parseString(httpResponse.text, function (error, result) {
+//
+//                console.dir(result);
+//                if (result)
+//                {
+//                    cloopen2avos(request, response, user, result);
+//                }
+//                else
+//                {
+//                    response.error('Request failed with response code ' + error);
+//                }
+//            });
+//
+//        },
+//        error: function(error){
+//
+//            response.error(error);
+//
+//        }
+//    });
+//});
 
 /****************
  用户资料
  *****************/
 
 //更新用户资料
-AV.Cloud.define("update_user_info", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var headViewURL = request.params.headViewURL;
-    var backgroundViewURL = request.params.backgroundViewURL;
-    var nickname = request.params.nickname;
-    var gender = request.params.gender;
-    var city = request.params.city;
-
-    var user = request.user;
-    if (headViewURL)
-    {
-        user.set('largeHeadViewURL',headViewURL);
-        user.set('smallHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/100x100');
-    }
-
-    if (backgroundViewURL)
-    {
-        user.set('backgroundViewURL',backgroundViewURL);
-    }
-
-    if (nickname)
-    {
-        user.set('nickname',nickname);
-    }
-
-    user.set('gender',gender);
-
-    if (city)
-    {
-        user.set('city',city);
-    }
-
-    user.set('isCompleteSignUp',true);
-
-    user.save().then(function(user) {
-
-        response.success(user);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("update_user_info", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var headViewURL = request.params.headViewURL;
+//    var backgroundViewURL = request.params.backgroundViewURL;
+//    var nickname = request.params.nickname;
+//    var gender = request.params.gender;
+//    var city = request.params.city;
+//
+//    var user = request.user;
+//    if (headViewURL)
+//    {
+//        user.set('largeHeadViewURL',headViewURL);
+//        user.set('smallHeadViewURL',headViewURL+'?imageMogr/auto-orient/thumbnail/100x100');
+//    }
+//
+//    if (backgroundViewURL)
+//    {
+//        user.set('backgroundViewURL',backgroundViewURL);
+//    }
+//
+//    if (nickname)
+//    {
+//        user.set('nickname',nickname);
+//    }
+//
+//    user.set('gender',gender);
+//
+//    if (city)
+//    {
+//        user.set('city',city);
+//    }
+//
+//    user.set('isCompleteSignUp',true);
+//
+//    user.save().then(function(user) {
+//
+//        response.success(user);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 ////关注
 //AV.Cloud.define("add_friend", function(request, response) {
@@ -398,87 +483,87 @@ AV.Cloud.define("update_user_info", function(request, response) {
  ***************/
 
 //发消息
-AV.Cloud.define("post_message", function(request, response){
-
-    _checkLogin(request, response);
-
-    var fromUser = request.user;
-    var toUser = request.params.toUser;
-    var voiceURL = request.params.voiceURL;
-    var text = request.params.text;
-
-
-    if (!(fromUser && toUser && content))
-    {
-        response.error(error);
-    }
-
-    var message = new Message();
-    message.set('fromUser',fromUser);
-    message.set('toUser',toUser);
-    var content = new Content();
-    content.text = text;
-    content.voiceURL = voiceURL;
-    message.set('content',content);
-    message.save().then(function(message) {
-
-        toUser.relation('contacts').add(fromUser);
-        toUser.save().then(function(message) {
-
-            response.success(message);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("post_message", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var fromUser = request.user;
+//    var toUser = request.params.toUser;
+//    var voiceURL = request.params.voiceURL;
+//    var text = request.params.text;
+//
+//
+//    if (!(fromUser && toUser && content))
+//    {
+//        response.error(error);
+//    }
+//
+//    var message = new Message();
+//    message.set('fromUser',fromUser);
+//    message.set('toUser',toUser);
+//    var content = new Content();
+//    content.text = text;
+//    content.voiceURL = voiceURL;
+//    message.set('content',content);
+//    message.save().then(function(message) {
+//
+//        toUser.relation('contacts').add(fromUser);
+//        toUser.save().then(function(message) {
+//
+//            response.success(message);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //更改会话中未读状态为已读
-AV.Cloud.define("update_message_to_is_read", function(request, response){
-
-    _checkLogin(request, response);
-
-    var toUser = request.user;
-    var fromUser = request.params.fromUser;
-
-    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
-
-    var messageQuery = new AV.Query(Message);
-    messageQuery.equalTo('fromUser',fromUserId);
-    messageQuery.equalTo('toUser',toUserId);
-    messageQuery.equalTo('isRead',false);
-
-    messageQuery.find().then(function(messages) {
-
-        for (var i in messages)
-        {
-            var message = messages[i];
-            message.set('isRead',true);
-        }
-        AV.Object.saveAll(messages).then(function() {
-
-            response.success();
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("update_message_to_is_read", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var toUser = request.user;
+//    var fromUser = request.params.fromUser;
+//
+//    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+//    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
+//
+//    var messageQuery = new AV.Query(Message);
+//    messageQuery.equalTo('fromUser',fromUserId);
+//    messageQuery.equalTo('toUser',toUserId);
+//    messageQuery.equalTo('isRead',false);
+//
+//    messageQuery.find().then(function(messages) {
+//
+//        for (var i in messages)
+//        {
+//            var message = messages[i];
+//            message.set('isRead',true);
+//        }
+//        AV.Object.saveAll(messages).then(function() {
+//
+//            response.success();
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //获取与某用户的聊天记录
 //AV.Cloud.define("search_messages_about_user", function(request, response){
@@ -520,140 +605,140 @@ AV.Cloud.define("update_message_to_is_read", function(request, response){
 //});
 
 //获取与某用户的未读聊天记录
-AV.Cloud.define("search_messages_about_user_for_unread", function(request, response){
-
-    _checkLogin(request, response);
-
-    var toUser = request.user;
-    var fromUser = request.params.fromUser;
-
-    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
-
-    var messageQuery = new AV.Query(Message);
-    messageQuery.equalTo('fromUser',fromUserId);
-    messageQuery.equalTo('toUser',toUserId);
-    messageQuery.descending('createdAt');
-    messageQuery.equalTo('isRead',false);
-    messageQuery.equalTo('isDelete',false);
-
-    limitQuery(request,messageQuery,function(messageQuery){
-
-        messageQuery.find().then(function(messages) {
-
-            response.success(messages);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    });
-});
+//AV.Cloud.define("search_messages_about_user_for_unread", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var toUser = request.user;
+//    var fromUser = request.params.fromUser;
+//
+//    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+//    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
+//
+//    var messageQuery = new AV.Query(Message);
+//    messageQuery.equalTo('fromUser',fromUserId);
+//    messageQuery.equalTo('toUser',toUserId);
+//    messageQuery.descending('createdAt');
+//    messageQuery.equalTo('isRead',false);
+//    messageQuery.equalTo('isDelete',false);
+//
+//    limitQuery(request,messageQuery,function(messageQuery){
+//
+//        messageQuery.find().then(function(messages) {
+//
+//            response.success(messages);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    });
+//});
 
 //获得全部未读的聊天记录数
-AV.Cloud.define("get_all_message_count_for_unread", function(request, response){
-
-    _checkLogin(request, response);
-
-    var toUser = request.user;
-//    var fromUser = request.params.toUser;
-
-//    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
-
-    var messageQuery = new AV.Query(Message);
-//    messageQuery.equalTo('fromUser',fromUserId);
-    messageQuery.equalTo('toUser',toUserId);
-    messageQuery.equalTo('isRead',false);
-    messageQuery.equalTo('isDelete',false);
-
-    messageQuery.count().then(function(count) {
-
-        response.success(count);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("get_all_message_count_for_unread", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var toUser = request.user;
+////    var fromUser = request.params.toUser;
+//
+////    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+//    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
+//
+//    var messageQuery = new AV.Query(Message);
+////    messageQuery.equalTo('fromUser',fromUserId);
+//    messageQuery.equalTo('toUser',toUserId);
+//    messageQuery.equalTo('isRead',false);
+//    messageQuery.equalTo('isDelete',false);
+//
+//    messageQuery.count().then(function(count) {
+//
+//        response.success(count);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //获取最近联系人列表
-AV.Cloud.define("get_contacts", function(request, response){
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-
-    var coutactsQuery = user.relation('contacts').query();
-
-    limitQuery(request,coutactsQuery,function(coutactsQuery){
-
-        coutactsQuery.find().then(function(contacts) {
-
-            response.success(contacts);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-    });
-
-});
+//AV.Cloud.define("get_contacts", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//
+//    var coutactsQuery = user.relation('contacts').query();
+//
+//    limitQuery(request,coutactsQuery,function(coutactsQuery){
+//
+//        coutactsQuery.find().then(function(contacts) {
+//
+//            response.success(contacts);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//    });
+//
+//});
 
 //删除联系人（同时将所有该联系人的消息delete）
-AV.Cloud.define("delete_contacts", function(request, response){
-
-    _checkLogin(request, response);
-
-    var toUser = request.user;
-    var fromUser = request.params.fromUser;
-
-    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
-
-    var messageQuery = new AV.Query(Message);
-    messageQuery.equalTo('fromUser',fromUserId);
-    messageQuery.equalTo('toUser',toUserId);
-    messageQuery.equalTo('isRead',false);
-
-    messageQuery.find().then(function(messages) {
-
-        for (var i in messages)
-        {
-            var message = messages[i];
-            message.set('isRead',true);
-        }
-        AV.Object.saveAll(messages).then(function() {
-
-//            var user = request.user;
-            toUser.relation('contacts').remove(fromUser);
-
-            return toUser.save().then(function() {
-
-                response.success();
-
-            }, function(error) {
-
-                response.error(error);
-
-            });
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("delete_contacts", function(request, response){
+//
+//    _checkLogin(request, response);
+//
+//    var toUser = request.user;
+//    var fromUser = request.params.fromUser;
+//
+//    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+//    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
+//
+//    var messageQuery = new AV.Query(Message);
+//    messageQuery.equalTo('fromUser',fromUserId);
+//    messageQuery.equalTo('toUser',toUserId);
+//    messageQuery.equalTo('isRead',false);
+//
+//    messageQuery.find().then(function(messages) {
+//
+//        for (var i in messages)
+//        {
+//            var message = messages[i];
+//            message.set('isRead',true);
+//        }
+//        AV.Object.saveAll(messages).then(function() {
+//
+////            var user = request.user;
+//            toUser.relation('contacts').remove(fromUser);
+//
+//            return toUser.save().then(function() {
+//
+//                response.success();
+//
+//            }, function(error) {
+//
+//                response.error(error);
+//
+//            });
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 
 /**************
@@ -792,6 +877,30 @@ AV.Cloud.define("created_push", function(request, response){
             response.error(error);
         }
     });
+});
+
+//创建通知
+AV.Cloud.define("delete_push", function(request, response){
+
+    _checkLogin(request, response);
+
+    var pushStr = request.params.pushId;
+
+    if (!pushStr)
+    {
+        response.error('参数错误');
+    }
+
+    var pushId = AV.Object.createWithoutData("_Notification", push.id);
+    pushId.delete().then(function() {
+
+            response.success('参数错误');
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
 
 });
 
@@ -918,131 +1027,131 @@ AV.Cloud.define("created_push", function(request, response){
  *****************/
 
 //上传街拍
-AV.Cloud.define("update_photo", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    var imageURLs = request.params.imageURLs;
-    var voiceURL = request.params.voiceURL;
-    var text = request.params.text;
-    var temperature = request.params.temperature;
-    var weatherCode = request.params.weatherCode;
-    var latitude = request.params.latitude;
-    var longitude = request.params.longitude;
-
-    if (!(imageURLs.length && imageURLs && temperature))
-    {
-        response.error('缺少必要参数');
-    }
-
-    var photos = [];
-    console.log('开始');
-
-    for (var i in imageURLs)
-    {
-        var imageURL = imageURLs[i];
-
-        //图片对象
-        var photo = new Photo();
-
-        //坐标
-        var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
-        photo.set('location',location);
-
-        //用户
-        photo.set('user',user);
-
-        //内容
-        var content = new Content();
-        if (voiceURL) content.set('voiceURL',voiceURL);
-        if (text) content.set('text',text);
-
-        photo.set('content',content);
-
-        //图片url
-        photo.set('originalURL',imageURL);
-        photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
-
-        console.log('请求'+imageURL);
-        //图片尺寸
-        AV.Cloud.httpRequest({
-            url: imageURL+'?imageInfo',
-            success: function(httpResponse) {
-
-//                console.log(httpResponse.text);
-
-//                    JSON.parse(httpResponse.text, function (error, result) {
-                var result = JSON.parse(httpResponse.text);
-                if (result)
-                {
-//                            console.log('图片大小'+result.width,result.height);
-                        photo.set('width',result.width);
-                        photo.set('height',result.height);
-
-                        var weatherTypeQuery = new AV.Query(WeatherType);
-                        weatherTypeQuery.equalTo('code',weatherCode);
-                        weatherTypeQuery.first().then(function(weatherTypeObj){
-
-                                var weatherTypeId = AV.Object.createWithoutData("WeatherType", weatherTypeObj.id);
-                                //天气code
-                                photo.set('weatherType',weatherTypeId);
-
-                                console.log('查询'+temperature);
-
-                                var temperatureQuery = new AV.Query(Temperature);
-                                temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
-                                temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
-                                temperatureQuery.first().then(function(temperatureObj){
-
-
-                                    var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
-                                    //气温种类
-                                    photo.set('temperature',temperatureId);
-
-                                    photos.push(photo);
-
-                                    console.log('保存'+photos.count);
-                                    if (photos.length == imageURLs.length)
-                                    {
-                                        console.log('结束');
-                                        AV.Object.saveAll(photos).then(function(photos) {
-
-                                            response.success(photos);
-
-                                        }, function(error) {
-
-                                            response.error(error);
-
-                                        });
-                                    }
-
-                                }, function(error) {
-
-                                    response.error(error);
-
-                                });
-
-
-                    },function(error){
-                            response.error(error);
-                        });
-                }
-                else
-                {
-                    response.error(error);
-                }
-
-            },
-            error: function(error){
-
-                response.error(error);
-
-            }
-        });
-
-    }
-});
+//AV.Cloud.define("upload_photo", function(request, response) {
+////    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    var imageURLs = request.params.imageURLs;
+//    var voiceURL = request.params.voiceURL;
+//    var text = request.params.text;
+//    var temperature = request.params.temperature;
+//    var weatherCode = request.params.weatherCode;
+//    var latitude = request.params.latitude;
+//    var longitude = request.params.longitude;
+//
+//    if (!(imageURLs.length && imageURLs && temperature))
+//    {
+//        response.error('缺少必要参数');
+//    }
+//
+//    var photos = [];
+//    console.log('开始');
+//    console.dir(imageURLs);
+//
+//    for (var i in imageURLs)
+//    {
+//        var imageURL = imageURLs[i];
+//         console.log(imageURL);
+//        //图片对象
+//        var photo = new Photo();
+//
+//        //坐标
+//        var location = new AV.GeoPoint({latitude: latitude, longitude: longitude});
+//        photo.set('location',location);
+//
+//        //用户
+//        photo.set('user',user);
+//
+//        //内容
+//        var content = new Content();
+//        if (voiceURL) content.set('voiceURL',voiceURL);
+//        if (text) content.set('text',text);
+//
+//        photo.set('content',content);
+//
+//        //图片url
+//        photo.set('originalURL',imageURL);
+//        photo.set('thumbnailURL',imageURL+'?imageMogr/auto-orient/thumbnail/200x');
+//
+//        console.log('请求'+imageURL);
+//        //图片尺寸
+//        AV.Cloud.httpRequest({
+//            url: imageURL+'?imageInfo',
+//            success: function(httpResponse) {
+//
+////                console.log(httpResponse.text);
+//
+////                    JSON.parse(httpResponse.text, function (error, result) {
+//                var result = JSON.parse(httpResponse.text);
+//                if (result)
+//                {
+////                            console.log('图片大小'+result.width,result.height);
+//                        photo.set('width',result.width);
+//                        photo.set('height',result.height);
+//
+//                        var weatherTypeQuery = new AV.Query(WeatherType);
+//                        weatherTypeQuery.equalTo('code',weatherCode);
+//                        weatherTypeQuery.first().then(function(weatherTypeObj){
+//
+//                                var weatherTypeId = AV.Object.createWithoutData("WeatherType", weatherTypeObj.id);
+//                                //天气code
+//                                photo.set('weatherType',weatherTypeId);
+//
+//                                console.log('查询'+temperature);
+//
+//                                var temperatureQuery = new AV.Query(Temperature);
+//                                temperatureQuery.greaterThanOrEqualTo('maxTemperture',temperature);
+//                                temperatureQuery.lessThanOrEqualTo('minTemperture',temperature);
+//                                temperatureQuery.first().then(function(temperatureObj){
+//
+//
+//                                    var temperatureId = AV.Object.createWithoutData("Temperature", temperatureObj.id);
+//                                    //气温种类
+//                                    photo.set('temperature',temperatureId);
+//
+//                                    photos.push(photo);
+//
+//                                    console.log('保存'+photos.count);
+//                                    if (photos.length == imageURLs.length)
+//                                    {
+//                                        console.log('结束');
+//                                        AV.Object.saveAll(photos).then(function(photos) {
+//
+//                                            response.success(photos);
+//
+//                                        }, function(error) {
+//
+//                                            response.error(error);
+//
+//                                        });
+//                                    }
+//
+//                                }, function(error) {
+//
+//                                    response.error(error);
+//
+//                                });
+//
+//
+//                    },function(error){
+//                            response.error(error);
+//                        });
+//                }
+//                else
+//                {
+//                    response.error("result 失败");
+//                }
+//
+//            },
+//            error: function(error){
+//
+//                response.error(error);
+//
+//            }
+//        });
+//
+//    }
+//});
 
 //查看用户的相册
 //AV.Cloud.define("search_user_photo", function(request, response) {
@@ -1128,232 +1237,232 @@ AV.Cloud.define("update_photo", function(request, response) {
 //});
 
 //评论照片
-AV.Cloud.define("comment_photo", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    var photo = request.params.photo;
-    var voiceURL = request.params.voiceURL;
-    var text = request.params.text;
-
-    if (!photo || !(voiceURL || text))
-    {
-        response.error('参数错误');
-    }
-
-    var comment = new Comment();
-
-    comment.set('user',user);
-
-    photo.increment('hot');
-    comment.set('photo',photo);
-
-    var content = new Content();
-    content.set('voiceURL',voiceURL);
-    content.set('text',text);
-    comment.set('content',content);
-
-    comment.save().then(function(comment) {
-
-        response.success(comment);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("comment_photo", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    var photo = request.params.photo;
+//    var voiceURL = request.params.voiceURL;
+//    var text = request.params.text;
+//
+//    if (!photo || !(voiceURL || text))
+//    {
+//        response.error('参数错误');
+//    }
+//
+//    var comment = new Comment();
+//
+//    comment.set('user',user);
+//
+//    photo.increment('hot');
+//    comment.set('photo',photo);
+//
+//    var content = new Content();
+//    content.set('voiceURL',voiceURL);
+//    content.set('text',text);
+//    comment.set('content',content);
+//
+//    comment.save().then(function(comment) {
+//
+//        response.success(comment);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //查看照片评论
-AV.Cloud.define("search_photo_comments", function(request, response) {
-
-    var photo = request.params.photo;
-
-    if (!photo)
-    {
-        response.error('参数错误');
-    }
-
-    var commentQ = new AV.Query(Comment);
-    _includeKeyWithComment(commentQ);
-
-    limitQuery(request,commentQ,function(commentQ){
-
-        commentQ.descending('createdAt');
-        commentQ.equal('photo',photo);
-        commentQ.find().then(function(comments) {
-
-            response.success(comments);
-
-        }, function(error) {
-
-            response.error(error);
-
-        });
-
-    });
-
-});
+//AV.Cloud.define("search_photo_comments", function(request, response) {
+//
+//    var photo = request.params.photo;
+//
+//    if (!photo)
+//    {
+//        response.error('参数错误');
+//    }
+//
+//    var commentQ = new AV.Query(Comment);
+//    _includeKeyWithComment(commentQ);
+//
+//    limitQuery(request,commentQ,function(commentQ){
+//
+//        commentQ.descending('createdAt');
+//        commentQ.equal('photo',photo);
+//        commentQ.find().then(function(comments) {
+//
+//            response.success(comments);
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
+//
+//    });
+//
+//});
 
 //查看照片评论数
-AV.Cloud.define("search_photo_comments_count", function(request, response) {
-
-    var photo = request.params.photo;
-
-    if (!photo)
-    {
-        response.error('参数错误');
-    }
-
-    var commentQ = new AV.Query(Comment);
-    _includeKeyWithComment(commentQ);
-    commentQ.descending('createdAt');
-    commentQ.equal('photo',photo);
-    commentQ.find().then(function(comments) {
-
-        response.success(comments);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+//AV.Cloud.define("search_photo_comments_count", function(request, response) {
+//
+//    var photo = request.params.photo;
+//
+//    if (!photo)
+//    {
+//        response.error('参数错误');
+//    }
+//
+//    var commentQ = new AV.Query(Comment);
+//    _includeKeyWithComment(commentQ);
+//    commentQ.descending('createdAt');
+//    commentQ.equal('photo',photo);
+//    commentQ.find().then(function(comments) {
+//
+//        response.success(comments);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
 //收藏照片
-AV.Cloud.define("favicon_photo", function(request, response) {
+//AV.Cloud.define("favicon_photo", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    var photo = request.params.photo;
+//
+//    if (!photo)
+//    {
+//        response.error('参数错误');
+//    }
+//
+//    user.relation('faviconPhotos').add(photo);
+//
+//    user.save().then(function(user) {
+//
+//        photo.relation('faviconUsers').add(user);
+//        photo.increment('hot');
+//        return photo.save();
+//
+//    }).then(function() {
+//
+//        response.success();
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//
+//});
 
-    _checkLogin(request, response);
+////查看照片的收藏者
+//AV.Cloud.define("search_photo_favicon_users", function(request, response) {
+//
+//    var photo = request.params.photo;
+//    var lessThenDateStr = request.params.lessThenDateStr;
+//    var limit = request.params.limit;
+//
+//    if (!photo)
+//    {
+//       response.error('参数错误');
+//    }
+//
+//    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
+//    if (lessThenDateStr)
+//    {
+//        var lessThenDate = toDate(lessThenDateStr);
+//        PhotofaviconsQuery.lessThan('createdAt',lessThenDate);
+//    }
+//
+//    PhotofaviconsQuery.limit(limit);
+//
+//    PhotofaviconsQuery.find().then(function(Photofavicons) {
+//
+//        response.success(Photofavicons);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
 
-    var user = request.user;
-    var photo = request.params.photo;
-
-    if (!photo)
-    {
-        response.error('参数错误');
-    }
-
-    user.relation('faviconPhotos').add(photo);
-
-    user.save().then(function(user) {
-
-        photo.relation('faviconUsers').add(user);
-        photo.increment('hot');
-        return photo.save();
-
-    }).then(function() {
-
-        response.success();
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-
-});
-
-//查看照片的收藏者
-AV.Cloud.define("search_photo_favicon_users", function(request, response) {
-
-    var photo = request.params.photo;
-    var lessThenDateStr = request.params.lessThenDateStr;
-    var limit = request.params.limit;
-
-    if (!photo)
-    {
-       response.error('参数错误');
-    }
-
-    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
-    if (lessThenDateStr)
-    {
-        var lessThenDate = toDate(lessThenDateStr);
-        PhotofaviconsQuery.lessThan('createdAt',lessThenDate);
-    }
-
-    PhotofaviconsQuery.limit(limit);
-
-    PhotofaviconsQuery.find().then(function(Photofavicons) {
-
-        response.success(Photofavicons);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
-
-//查看照片的收藏者数
-AV.Cloud.define("search_photo_favicon_users_count", function(request, response) {
-
-    var photo = request.params.photo;
-
-    if (!photo)
-    {
-        response.error('参数错误');
-    }
-
-    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
-
-    PhotofaviconsQuery.count().then(function(PhotofaviconsCount) {
-
-        response.success(PhotofaviconsCount);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
-
-//查看我收藏的照片
-AV.Cloud.define("get_my_favicon_photos", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-    var faviconPhotosQuery =  user.relation('faviconPhotos').query();
-    var lessThenDateStr = request.params.lessThenDateStr;
-    var limit = request.params.limit;
-
-    if (lessThenDateStr)
-    {
-        var lessThenDate = toDate(lessThenDateStr);
-        faviconPhotosQuery.lessThan('createdAt',lessThenDate);
-    }
-
-    faviconPhotosQuery.limit(limit);
-
-    faviconPhotosQuery.find().then(function(faviconPhotos) {
-
-        response.success(faviconPhotos);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
-
-//查看我收藏的照片数
-AV.Cloud.define("get_my_favicon_photos_count", function(request, response) {
-
-    _checkLogin(request, response);
-
-    var user = request.user;
-
-    var faviconPhotosQuery =  user.relation('faviconPhotos').query;
-
-    faviconPhotosQuery.count().then(function(faviconPhotosCount) {
-
-        response.success(faviconPhotosCount);
-
-    }, function(error) {
-
-        response.error(error);
-
-    });
-});
+////查看照片的收藏者数
+//AV.Cloud.define("search_photo_favicon_users_count", function(request, response) {
+//
+//    var photo = request.params.photo;
+//
+//    if (!photo)
+//    {
+//        response.error('参数错误');
+//    }
+//
+//    var PhotofaviconsQuery =  photo.relation('faviconUsers').query();
+//
+//    PhotofaviconsQuery.count().then(function(PhotofaviconsCount) {
+//
+//        response.success(PhotofaviconsCount);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
+//
+////查看我收藏的照片
+//AV.Cloud.define("get_my_favicon_photos", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//    var faviconPhotosQuery =  user.relation('faviconPhotos').query();
+//    var lessThenDateStr = request.params.lessThenDateStr;
+//    var limit = request.params.limit;
+//
+//    if (lessThenDateStr)
+//    {
+//        var lessThenDate = toDate(lessThenDateStr);
+//        faviconPhotosQuery.lessThan('createdAt',lessThenDate);
+//    }
+//
+//    faviconPhotosQuery.limit(limit);
+//
+//    faviconPhotosQuery.find().then(function(faviconPhotos) {
+//
+//        response.success(faviconPhotos);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
+//
+////查看我收藏的照片数
+//AV.Cloud.define("get_my_favicon_photos_count", function(request, response) {
+//
+//    _checkLogin(request, response);
+//
+//    var user = request.user;
+//
+//    var faviconPhotosQuery =  user.relation('faviconPhotos').query;
+//
+//    faviconPhotosQuery.count().then(function(faviconPhotosCount) {
+//
+//        response.success(faviconPhotosCount);
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
+//});
