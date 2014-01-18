@@ -297,23 +297,36 @@ AV.Cloud.define("delete_push", function(request, response){
         response.error('参数错误');
     }
 
-//    var pushId = AV.Object.createWithoutData("_Notification", pushStr);
+    var pushid = AV.Object.createWithoutData("_Notification", pushId);
+    pushid.destroy().then(function() {
 
-    var pushQuery = new AV.Query(Notification);
-    pushQuery.equalTo('objectId',pushId);
-    pushQuery.first().then(function(push) {
+        console.log('删除成功1');
+        response.success('成功');
 
-        return push.delete();
+    }, function(error) {
 
-    }).then(function() {
+        response.error(error);
 
-            response.success('成功');
+    });
 
-        }, function(error) {
-
-            response.error(error);
-
-        });
+//    console.log('开始查询');
+//    var pushQuery = new AV.Query(Notification);
+//    pushQuery.equalTo('objectId',pushId);
+//    pushQuery.first().then(function(push) {
+//
+//        console.log('查询成功');
+//        return push.delete();
+//
+//    }).then(function() {
+//
+//            console.log('删除成功');
+//            response.success('成功');
+//
+//        }, function(error) {
+//
+//            response.error(error);
+//
+//        });
 
 });
 
