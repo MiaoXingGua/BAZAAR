@@ -255,8 +255,8 @@ function createPush(users,pushDate,alert,done){
 //删除通知
 function deletePush(push,done){
 
-    var pushId = AV.Object.createWithoutData("_Notification", push.id);
-    pushId.destroy().then(function() {
+//    var pushId = AV.Object.createWithoutData("_Notification", push.id);
+    push.destroy().then(function() {
 
         console.log('删除成功');
         done(null);
@@ -289,8 +289,8 @@ AV.Cloud.beforeSave("Schedule", function(request, response) {
 
         if (push && !error)
         {
-            var pushId = AV.Object.createWithoutData("_Notification", push.id);
-            schedlue.set('push',push.id);
+//            var pushId = AV.Object.createWithoutData("_Notification", push.id);
+            schedlue.set('pushId',push.id);
             response.success();
         }
         else
@@ -309,7 +309,24 @@ AV.Cloud.afterUpdate("Schedule", function(request) {
 });
 
 AV.Cloud.beforeDelete("Schedule", function(request, response) {
+
+    _checkLogin(request, response);
+//    var user = request.user;
+//    var userId = AV.Object.createWithoutData("_User", user.id);
     var schedlue = request.object;
+    var pushId = AV.Object.createWithoutData("_Notification", schedlue.get('pushId'));
+
+    deletePush(pushId,function(error){
+
+        if (!error)
+        {
+            response.success();
+        }
+        else
+        {
+            response.error(error);
+        }
+    });
 });
 
 //AV.Cloud.afterDelete("Schedule", function(request) {
