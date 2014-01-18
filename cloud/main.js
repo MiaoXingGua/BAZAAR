@@ -274,9 +274,9 @@ AV.Cloud.define("created_push", function(request, response){
 
         if (push && !error)
         {
-            var pushId = AV.Object.createWithoutData("_Notification", push.id);
+//            var pushId = AV.Object.createWithoutData("_Notification", push.id);
 
-            response.success(pushId);
+            response.success(push.id);
         }
         else
         {
