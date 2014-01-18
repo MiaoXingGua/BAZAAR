@@ -191,7 +191,7 @@ function limitQuery(request,query,done){
 //});
 
 //创建通知
-function createdPush(users,push_time,alert,done){
+function createPush(users,pushDate,alert,done){
 
     console.log("开始创建通知");
     //创建通知
@@ -201,13 +201,13 @@ function createdPush(users,push_time,alert,done){
 
     var guid = newGuid();
 
-    if (!(push_time && alert && users[0].id && guid))
+    if (!(pushDate && alert && users[0].id && guid))
     {
        console.log('创建通知参数错误');
         done(null,'创建通知参数错');
     }
 
-//    console.dir(push_time);
+//    console.dir(pushDate);
 //    console.dir(alert);
 //    console.dir(users);
 //    console.dir(guid);
@@ -217,7 +217,7 @@ function createdPush(users,push_time,alert,done){
         data: {
             alert:alert
         },
-        push_time:push_time,
+        push_time:pushDate,
         guid:guid
 
     }).then(function() {
@@ -251,6 +251,64 @@ function createdPush(users,push_time,alert,done){
             done(null,error);
     });
 }
+
+//删除通知
+function deletePush(push,done){
+
+    var pushId = AV.Object.createWithoutData("_Notification", push.id);
+    pushId.destroy().then(function() {
+
+        console.log('删除成功');
+        done(null);
+
+    }, function(error) {
+
+        console.log('删除失败');
+        done(error);
+    });
+
+}
+
+
+//保存日程之前（创建提醒）
+AV.Cloud.beforeSave("Schedule", function(request, response) {
+    var schedlue = request.object;
+    var pushTime = schedlue.get('remindDate');
+
+    if (!pushTime)
+    {
+        response.success();
+    }
+
+    createdPush([userId],pushDate,alert,function(push,error){
+
+        if (push && !error)
+        {
+            schedlue.set('push',push);
+            response.success();
+        }
+        else
+        {
+            response.error(error);
+        }
+    });
+});
+
+//AV.Cloud.afterSave("Schedule", function(request) {
+//
+//});
+
+AV.Cloud.afterUpdate("Schedule", function(request) {
+
+});
+
+AV.Cloud.beforeDelete("Schedule", function(request, response) {
+    var schedlue = request.object;
+});
+
+//AV.Cloud.afterDelete("Schedule", function(request) {
+//
+//});
 
 //创建通知
 AV.Cloud.define("created_push", function(request, response){
@@ -308,25 +366,6 @@ AV.Cloud.define("delete_push", function(request, response){
         response.error(error);
 
     });
-
-//    console.log('开始查询');
-//    var pushQuery = new AV.Query(Notification);
-//    pushQuery.equalTo('objectId',pushId);
-//    pushQuery.first().then(function(push) {
-//
-//        console.log('查询成功');
-//        return push.delete();
-//
-//    }).then(function() {
-//
-//            console.log('删除成功');
-//            response.success('成功');
-//
-//        }, function(error) {
-//
-//            response.error(error);
-//
-//        });
 
 });
 
