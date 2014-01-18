@@ -277,6 +277,7 @@ AV.Cloud.beforeSave("Schedule", function(request, response) {
 
     var user = request.user;
     var userId = AV.Object.createWithoutData("_User", user.id);
+
     var schedlue = request.object;
     var pushDate = schedlue.get('remindDate');
 
