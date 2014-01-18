@@ -272,15 +272,20 @@ function deletePush(push,done){
 
 //保存日程之前（创建提醒）
 AV.Cloud.beforeSave("Schedule", function(request, response) {
-    var schedlue = request.object;
-    var pushTime = schedlue.get('remindDate');
 
-    if (!pushTime)
+    _checkLogin(request, response);
+
+    var user = request.user;
+    var userId = AV.Object.createWithoutData("_User", user.id);
+    var schedlue = request.object;
+    var pushDate = schedlue.get('remindDate');
+
+    if (!pushDate)
     {
         response.success();
     }
 
-    createdPush([userId],pushDate,alert,function(push,error){
+    createPush([userId],pushDate,"你有一条新得提醒",function(push,error){
 
         if (push && !error)
         {
