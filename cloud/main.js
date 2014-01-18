@@ -290,7 +290,7 @@ AV.Cloud.beforeSave("Schedule", function(request, response) {
         if (push && !error)
         {
             var pushId = AV.Object.createWithoutData("_Notification", push.id);
-            schedlue.set('push',pushId);
+            schedlue.set('push',push.id);
             response.success();
         }
         else
