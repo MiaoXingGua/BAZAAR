@@ -87,8 +87,10 @@ function _checkLogin(request, response){
 }
 
 //字符串————>时间
-function toDate(dateStr){
-    return moment(dateStr, "YYYY-MM-DD HH:mm:ss").add('hours',8).toDate()
+function toDate(dateStr,formateStr,addHours){
+    if (!formateStr) formateStr = "YYYY-MM-DD HH:mm:ss";
+    if (!addHours) addHours = 8;
+    return moment(dateStr, formateStr).add('hours',addHours).toDate()
 }
 
 //限制返回的调试
@@ -99,7 +101,7 @@ function limitQuery(request,query,done){
 
     if (lessThenDateStr)
     {
-        var lessThenDate = toDate(lessThenDateStr);
+        var lessThenDate = toDate(lessThenDateStr,"YYYY-MM-DD HH:mm:ss");
         query.lessThan('createdAt',lessThenDate);
     }
 
@@ -109,86 +111,99 @@ function limitQuery(request,query,done){
 
 }
 
-//AV.Cloud.setInterval('PM25', 60*20, function(){
+
+AV.Cloud.define("toDate", function(request, response) {
+
+//    console.log(toDate("2014-01-21T10:00:00Z","yyyy-MM-dd'T'HH:mm:ssZ",0));
+                console.log(moment("2014-01-21T10:00:00Z","yyyy-MM-dd'T'HH:mm:ss'Z'").toDate());
+
+});
+
+if (!__production)
+AV.Cloud.setInterval('PM25', 60*20, function(){
 //AV.Cloud.define("PM25", function(request, response) {
-//
-//    console.log('开始请求PM25');
-//
-//
-//    AV.Cloud.httpRequest({
-//        url: "http://www.pm25.in/api/querys/all_cities.json?token="+PM25AppKey,
-//        success: function(httpResponse) {
-//
-//            console.log('请求PM25成功');
-//            try {
+
+    console.log('开始请求PM25');
+
+
+    AV.Cloud.httpRequest({
+        url: "http://www.pm25.in/api/querys/all_cities.json?token="+PM25AppKey,
+        success: function(httpResponse) {
+
+            console.log('请求PM25成功');
+            try {
 //                console.dir(httpResponse.text);
-//                var resultInfo = JSON.parse(httpResponse.text);
-//
-//                if (resultInfo)
-//                {
-//                    var aqis = new Array();
-//                    console.dir(resultInfo);
-//                    for (var i in resultInfo)
-//                    {
-//                        var aqiInfo = resultInfo[i];
-//
+                var resultInfo = JSON.parse(httpResponse.text);
+
+                if (resultInfo)
+                {
+                    var aqis = new Array();
+                    console.log('获得aqi数量 ： '+resultInfo.length);
+                    for (var i in resultInfo)
+                    {
+                        var aqiInfo = resultInfo[i];
+
 //                        console.dir(aqiInfo);
 //                        console.dir(aqiInfo.area);
-//
-//                        var aqi = new AirQualityIndex();
-//                        aqi.set('area', aqiInfo.area);
-//                        aqi.set('position_name', aqiInfo.position_name);
-//                        aqi.set('station_code', aqiInfo.station_code);
-//                        aqi.set('so2', aqiInfo.so2);
-//                        aqi.set('so2_24h', aqiInfo.so2_24h);
-//                        aqi.set('no2', aqiInfo.no2);
-//                        aqi.set('no2_24h', aqiInfo.no2_24h);
-//                        aqi.set('pm10', aqiInfo.pm10);
-//                        aqi.set('pm10_24h', aqiInfo.pm10_24h);
-//                        aqi.set('co', aqiInfo.co);
-//                        aqi.set('co_24h', aqiInfo.co_24h);
-//                        aqi.set('o3', aqiInfo.o3);
-//                        aqi.set('o3_24h', aqiInfo.o3_24h);
-//                        aqi.set('o3_8h', aqiInfo.o3_8h);
-//                        aqi.set('o3_8h_24h', aqiInfo.o3_8h_24h);
-//                        aqi.set('pm2_5', aqiInfo.pm2_5);
-//                        aqi.set('pm2_5_24h', aqiInfo.pm2_5_24h);
-//                        aqi.set('primary_pollutant', aqiInfo.primary_pollutant);
-//                        aqi.set('quality', aqiInfo.quality);
+
+                        var aqi = new AirQualityIndex();
+                        aqi.set('area', aqiInfo.area);
+                        aqi.set('aqi',aqiInfo.aqi);
+                        aqi.set('position_name', aqiInfo.position_name);
+                        aqi.set('station_code', aqiInfo.station_code);
+                        aqi.set('so2', aqiInfo.so2);
+                        aqi.set('so2_24h', aqiInfo.so2_24h);
+                        aqi.set('no2', aqiInfo.no2);
+                        aqi.set('no2_24h', aqiInfo.no2_24h);
+                        aqi.set('pm10', aqiInfo.pm10);
+                        aqi.set('pm10_24h', aqiInfo.pm10_24h);
+                        aqi.set('co', aqiInfo.co);
+                        aqi.set('co_24h', aqiInfo.co_24h);
+                        aqi.set('o3', aqiInfo.o3);
+                        aqi.set('o3_24h', aqiInfo.o3_24h);
+                        aqi.set('o3_8h', aqiInfo.o3_8h);
+                        aqi.set('o3_8h_24h', aqiInfo.o3_8h_24h);
+                        aqi.set('pm2_5', aqiInfo.pm2_5);
+                        aqi.set('pm2_5_24h', aqiInfo.pm2_5_24h);
+                        aqi.set('primary_pollutant', aqiInfo.primary_pollutant);
+
+                        aqi.set('quality', aqiInfo.quality);
 //                        aqi.set('time_point', aqiInfo.time_point);
-//                        aqis.push(aqi);
-//                    }
-//                    AV.Object.saveAll(aqis, function(list, error) {
-//                        if (list) {
-//                            // All the objects were saved.
-//                            console.log('保存PM25成功',list.length);
-//
-//                        } else {
-//                            // An error occurred.
-//                            console.log('保存PM25失败1');
-//                            console.dir(error);
-//                        }
-//                    });
-//                }
-//                else
-//                {
-//                    console.dir("resultInfo : "+resultInfo.result);
-//                }
-//            }
-//            catch(error) {
-//
-//                console.log('保存PM25失败2');
-//                console.dir(error);
-//            }
-//        },
-//        error: function(error) {
-//
-//            console.log('保存PM25失败3');
-//            console.dir(error);
-//        }
-//    });
-//
-//});
+                        aqis.push(aqi);
+                    }
+                    console.log('存入aqi数量 ： '+aqis.length);
+                    AV.Object.saveAll(aqis, function(list, error) {
+                        if (list) {
+                            // All the objects were saved.
+                            console.log('保存PM25成功');
+                            console.log('成功存入aqi数量 ： '+list.length);
+
+                        } else {
+                            // An error occurred.
+                            console.log('保存PM25失败1');
+                            console.dir(error);
+                        }
+                    });
+                }
+                else
+                {
+                    console.dir("resultInfo : "+resultInfo.result);
+                }
+            }
+            catch(error) {
+
+                console.log('保存PM25失败2');
+                console.dir(error);
+            }
+        },
+        error: function(error) {
+
+            console.log('保存PM25失败3');
+            console.dir(error);
+        }
+    });
+
+});
 
 //创建通知
 function createPush(users,pushDate,alert,done){
@@ -270,7 +285,7 @@ function deletePush(push,done){
 }
 
 
-//保存日程之前（创建提醒）
+//保存日程之前（创建推送通知）
 AV.Cloud.beforeSave("Schedule", function(request, response) {
 
     _checkLogin(request, response);
@@ -305,10 +320,11 @@ AV.Cloud.beforeSave("Schedule", function(request, response) {
 //
 //});
 
-AV.Cloud.afterUpdate("Schedule", function(request) {
+//AV.Cloud.afterUpdate("Schedule", function(request) {
+//
+//});
 
-});
-
+//删除日程之前(删除推送通知)
 AV.Cloud.beforeDelete("Schedule", function(request, response) {
 
     _checkLogin(request, response);
@@ -380,16 +396,31 @@ AV.Cloud.define("delete_push", function(request, response){
     }
 
     var pushid = AV.Object.createWithoutData("_Notification", pushId);
-    pushid.destroy().then(function() {
 
-        console.log('删除成功1');
-        response.success('成功');
-
-    }, function(error) {
-
-        response.error(error);
+    deletePush(pushid,function(error){
+        if (!error)
+        {
+            console.log('删除成功1');
+            response.success('成功');
+        }
+        else
+        {
+            response.error(error);
+        }
 
     });
+
+
+//    pushid.destroy().then(function() {
+//
+//        console.log('删除成功1');
+//        response.success('成功');
+//
+//    }, function(error) {
+//
+//        response.error(error);
+//
+//    });
 
 });
 
