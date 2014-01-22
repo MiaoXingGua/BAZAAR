@@ -119,31 +119,34 @@ AV.Cloud.define("toDate", function(request, response) {
 
 });
 
-AV.Cloud.beforeSave("Message", function(request, response){
+//AV.Cloud.beforeSave("Message", function(request, response){
 
-    var toUser = request.object.get('toUser');
-    var fromUser = request.object.get('fromUser');
+//    var toUser = request.object.get('toUser');
+//    var fromUser = request.object.get('fromUser');
+//
+////    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
+////    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
+//
+////    console.dir(toUser);
+////    console.dir(fromUser);
+//
+//    var userQ = new AV.Query(User);
+//    userQ.equalTo('objectId',toUser.id);
+//    userQ.
+//    toUserId.relation('contacts').add(fromUserId);
+//    toUserId.save().then(function(user) {
+//
+//        console.log('成功');
+//            response.success(user);
+//
+//        }, function(error) {
+//
+//        console.log('失败');
+//            response.error(error);
+//
+//        });
 
-    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
-    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-
-//    console.dir(toUser);
-//    console.dir(fromUser);
-
-    toUserId.relation('contacts').add(fromUserId);
-    toUserId.save().then(function(user) {
-
-        console.log('成功');
-            response.success(user);
-
-        }, function(error) {
-
-        console.log('失败');
-            response.error(error);
-
-        });
-
-});
+//});
 
 
 function PM25() {
