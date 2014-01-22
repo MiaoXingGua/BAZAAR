@@ -132,7 +132,7 @@ function PM25() {
 //                console.dir(httpResponse.text);
                 var resultInfo = JSON.parse(httpResponse.text);
 
-                var guid = newGuid();
+//                var guid = newGuid();
 
                 if (resultInfo)
                 {
@@ -141,8 +141,8 @@ function PM25() {
                     for (var i in resultInfo)
                     {
                         var aqiInfo = resultInfo[i];
-
-//                        console.dir(aqiInfo);
+                        if (!__production)
+                        console.dir(aqiInfo);
 //                        console.dir(aqiInfo.area);
 
                         var aqi = new AirQualityIndex();
@@ -165,7 +165,7 @@ function PM25() {
                         aqi.set('pm2_5', aqiInfo.pm2_5);
                         aqi.set('pm2_5_24h', aqiInfo.pm2_5_24h);
                         aqi.set('primary_pollutant', aqiInfo.primary_pollutant);
-                        aqi.set('guid',guid);
+//                        aqi.set('guid',guid);
 
                         aqi.set('quality', aqiInfo.quality);
 //                        aqi.set('time_point', aqiInfo.time_point);
@@ -205,7 +205,7 @@ function PM25() {
 
 }
 
-if (__production)
+if (!__production)
 {
     AV.Cloud.setInterval('PM25_timer', 60*20, PM25);
 }
