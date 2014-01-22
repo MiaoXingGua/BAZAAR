@@ -121,8 +121,8 @@ AV.Cloud.define("toDate", function(request, response) {
 
 AV.Cloud.beforeSave("Message", function(request, response){
 
-    var toUser = request.object.toUser;
-    var fromUser = request.object.fromUser;
+    var toUser = request.object.get('toUser');
+    var fromUser = request.object.get('fromUser');
 
     console.dir(toUser);
     console.dir(fromUser);
