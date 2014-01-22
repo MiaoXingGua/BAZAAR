@@ -119,6 +119,25 @@ AV.Cloud.define("toDate", function(request, response) {
 
 });
 
+AV.Cloud.beforeSave("Message", function(request, response){
+
+    var toUser = request.object.toUser;
+    var fromUser = request.object.fromUser;
+
+    toUser.relation('contacts').add(fromUser);
+    toUser.save().then(function(user) {
+
+            response.success(user);
+
+        }, function(error) {
+
+            response.error(error);
+
+        });
+
+});
+
+
 function PM25() {
 
     console.log('开始请求PM25');
