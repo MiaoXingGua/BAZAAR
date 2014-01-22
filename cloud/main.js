@@ -124,13 +124,18 @@ AV.Cloud.beforeSave("Message", function(request, response){
     var toUser = request.object.toUser;
     var fromUser = request.object.fromUser;
 
+    console.dir(toUser);
+    console.dir(fromUser);
+
     toUser.relation('contacts').add(fromUser);
     toUser.save().then(function(user) {
 
+        console.log('成功');
             response.success(user);
 
         }, function(error) {
 
+        console.log('失败');
             response.error(error);
 
         });
