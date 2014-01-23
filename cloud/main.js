@@ -143,26 +143,26 @@ AV.Cloud.beforeSave("Message", function(request, response){
     userQ.equalTo('objectId',toUser.$id);
     userQ.then(function(user) {
 
-        console.log("1");
-        user1 = user;
-        var userQ = new AV.Query(User);
-        return userQ.equalTo('objectId',fromUser.$id);
-
-    }).then(function(user) {
-
-            console.log("2");
-        user2 = user;
-        user1.relation('contacts').add(user2);
-        return user1.save();
-
-    }).then(function(user) {
-
-            console.log("3");
-        user2.relation('contacts').add(user1);
-        return user2.save();
-
-    }).then(function(user) {
-
+//        console.log("1");
+//        user1 = user;
+//        var userQ = new AV.Query(User);
+//        return userQ.equalTo('objectId',fromUser.$id);
+//
+//    }).then(function(user) {
+//
+//            console.log("2");
+//        user2 = user;
+//        user1.relation('contacts').add(user2);
+//        return user1.save();
+//
+//    }).then(function(user) {
+//
+//            console.log("3");
+//        user2.relation('contacts').add(user1);
+//        return user2.save();
+//
+//    }).then(function(user) {
+//
             console.log("4");
         response.success();
 
