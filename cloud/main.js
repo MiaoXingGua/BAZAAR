@@ -492,7 +492,7 @@ AV.Cloud.define("datetime", function(request, response) {
 
 //    var timestamp = Date.parse(new Date());
     var timestamp = new Date().getTime();
-    console.log(timestamp);
+//    console.log(timestamp);
     response.success(timestamp);
 });
 
