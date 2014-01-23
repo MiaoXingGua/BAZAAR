@@ -170,7 +170,7 @@ AV.Cloud.beforeSave("Message", function(request, response){
 });
 
 
-//function PM25() {
+function PM25() {
 //
 //    console.log('开始请求PM25');
 //
@@ -254,7 +254,7 @@ AV.Cloud.beforeSave("Message", function(request, response){
 //        }
 //    });
 //
-//}
+}
 
 if (!__production)
 {
