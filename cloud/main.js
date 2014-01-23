@@ -126,49 +126,51 @@ AV.Cloud.beforeSave("Message", function(request, response){
 
 //    var toUserId = AV.Object.createWithoutData("_User", toUser.id);
 //    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
-    console.dir(request.object);
+//    console.dir(request.object);
     console.dir(toUser);
     console.dir(fromUser);
     console.log('id1 : '+toUser.$id);
-    console.log('id11 : '+toUser.get('$id'));
+//    console.log('id11 : '+toUser.get('$id'));
     console.log('id2 : '+fromUser.$id);
-    console.log('id22 : '+fromUser.get('$id'));
+//    console.log('id22 : '+fromUser.get('$id'));
 
-    var user1;
-    var user2;
+    response.error();
 
-    var userQ = new AV.Query(User);
-    userQ.equalTo('objectId',toUser.id);
-    userQ.then(function(user) {
-
-        console.log("1");
-        user1 = user;
-        var userQ = new AV.Query(User);
-        return userQ.equalTo('objectId',fromUser.id);
-
-    }).then(function(user) {
-
-            console.log("2");
-        user2 = user;
-        user1.relation('contacts').add(user2);
-        return user1.save();
-
-    }).then(function(user) {
-
-            console.log("3");
-        user2.relation('contacts').add(user1);
-        return user2.save();
-
-    }).then(function(user) {
-
-            console.log("4");
-        response.success();
-
-    }, function(error) {
-            console.log("5");
-        response.error(error);
-
-    });
+//    var user1;
+//    var user2;
+//
+//    var userQ = new AV.Query(User);
+//    userQ.equalTo('objectId',toUser.id);
+//    userQ.then(function(user) {
+//
+//        console.log("1");
+//        user1 = user;
+//        var userQ = new AV.Query(User);
+//        return userQ.equalTo('objectId',fromUser.id);
+//
+//    }).then(function(user) {
+//
+//            console.log("2");
+//        user2 = user;
+//        user1.relation('contacts').add(user2);
+//        return user1.save();
+//
+//    }).then(function(user) {
+//
+//            console.log("3");
+//        user2.relation('contacts').add(user1);
+//        return user2.save();
+//
+//    }).then(function(user) {
+//
+//            console.log("4");
+//        response.success();
+//
+//    }, function(error) {
+//            console.log("5");
+//        response.error(error);
+//
+//    });
 
 
 });
