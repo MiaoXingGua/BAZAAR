@@ -147,13 +147,13 @@ AV.Cloud.beforeSave("Message", function(request, response){
             console.log("2");
         user2 = user;
         user1.relation('contacts').add(user2);
-        var user1.save();
+        return user1.save();
 
     }).then(function(user) {
 
             console.log("3");
         user2.relation('contacts').add(user1);
-        var user2.save();
+        return user2.save();
 
     }).then(function(user) {
 
