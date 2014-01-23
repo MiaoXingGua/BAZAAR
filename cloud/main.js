@@ -139,6 +139,7 @@ AV.Cloud.beforeSave("Message", function(request, response){
     var user1;
     var user2;
 
+    var User = AV.Object.extend('_User');
     var userQ = new AV.Query(User);
     userQ.equalTo('objectId',toUser.$id);
     userQ.then(function(user) {
