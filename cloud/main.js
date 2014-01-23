@@ -129,6 +129,8 @@ AV.Cloud.beforeSave("Message", function(request, response){
     console.dir(request.object);
     console.dir(toUser);
     console.dir(fromUser);
+    console.log('id1 : '+toUser.id);
+    console.log('id2 : '+fromUser.id);
 
     var user1;
     var user2;
