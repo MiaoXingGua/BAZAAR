@@ -112,12 +112,12 @@ function limitQuery(request,query,done){
 }
 
 
-AV.Cloud.define("toDate", function(request, response) {
-
-//    console.log(toDate("2014-01-21T10:00:00Z","yyyy-MM-dd'T'HH:mm:ssZ",0));
-                console.log(moment("2014-01-21T10:00:00Z","yyyy-MM-dd'T'HH:mm:ss'Z'").toDate());
-
-});
+//AV.Cloud.define("toDate", function(request, response) {
+//
+////    console.log(toDate("2014-01-21T10:00:00Z","yyyy-MM-dd'T'HH:mm:ssZ",0));
+//                console.log(moment("2014-01-21T10:00:00Z","yyyy-MM-dd'T'HH:mm:ss'Z'").toDate());
+//
+//});
 
 AV.Cloud.beforeSave("Message", function(request, response){
 
@@ -170,91 +170,91 @@ AV.Cloud.beforeSave("Message", function(request, response){
 });
 
 
-function PM25() {
-
-    console.log('开始请求PM25');
-
-    AV.Cloud.httpRequest({
-        url: "http://www.pm25.in/api/querys/all_cities.json?token="+PM25AppKey,
-        success: function(httpResponse) {
-
-            console.log('请求PM25成功');
-            try {
-//                console.dir(httpResponse.text);
-                var resultInfo = JSON.parse(httpResponse.text);
-
-//                var guid = newGuid();
-
-                if (resultInfo)
-                {
-                    var aqis = new Array();
-                    console.log('获得aqi数量 ： '+resultInfo.length);
-                    for (var i in resultInfo)
-                    {
-                        var aqiInfo = resultInfo[i];
-                        if (!__production)
-                        console.dir(aqiInfo);
-//                        console.dir(aqiInfo.area);
-
-                        var aqi = new AirQualityIndex();
-                        aqi.set('area', aqiInfo.area);
-                        aqi.set('aqi',aqiInfo.aqi);
-                        aqi.set('position_name', aqiInfo.position_name);
-                        aqi.set('station_code', aqiInfo.station_code);
-                        aqi.set('so2', aqiInfo.so2);
-                        aqi.set('so2_24h', aqiInfo.so2_24h);
-                        aqi.set('no2', aqiInfo.no2);
-                        aqi.set('no2_24h', aqiInfo.no2_24h);
-                        aqi.set('pm10', aqiInfo.pm10);
-                        aqi.set('pm10_24h', aqiInfo.pm10_24h);
-                        aqi.set('co', aqiInfo.co);
-                        aqi.set('co_24h', aqiInfo.co_24h);
-                        aqi.set('o3', aqiInfo.o3);
-                        aqi.set('o3_24h', aqiInfo.o3_24h);
-                        aqi.set('o3_8h', aqiInfo.o3_8h);
-                        aqi.set('o3_8h_24h', aqiInfo.o3_8h_24h);
-                        aqi.set('pm2_5', aqiInfo.pm2_5);
-                        aqi.set('pm2_5_24h', aqiInfo.pm2_5_24h);
-                        aqi.set('primary_pollutant', aqiInfo.primary_pollutant);
-//                        aqi.set('guid',guid);
-
-                        aqi.set('quality', aqiInfo.quality);
-//                        aqi.set('time_point', aqiInfo.time_point);
-                        aqis.push(aqi);
-                    }
-                    console.log('存入aqi数量 ： '+aqis.length);
-                    AV.Object.saveAll(aqis, function(list, error) {
-                        if (list) {
-                            // All the objects were saved.
-                            console.log('保存PM25成功');
-                            console.log('成功存入aqi数量 ： '+list.length);
-
-                        } else {
-                            // An error occurred.
-                            console.log('保存PM25失败1');
-                            console.dir(error);
-                        }
-                    });
-                }
-                else
-                {
-                    console.dir("resultInfo : "+resultInfo.result);
-                }
-            }
-            catch(error) {
-
-                console.log('保存PM25失败2');
-                console.dir(error);
-            }
-        },
-        error: function(error) {
-
-            console.log('保存PM25失败3');
-            console.dir(error);
-        }
-    });
-
-}
+//function PM25() {
+//
+//    console.log('开始请求PM25');
+//
+//    AV.Cloud.httpRequest({
+//        url: "http://www.pm25.in/api/querys/all_cities.json?token="+PM25AppKey,
+//        success: function(httpResponse) {
+//
+//            console.log('请求PM25成功');
+//            try {
+////                console.dir(httpResponse.text);
+//                var resultInfo = JSON.parse(httpResponse.text);
+//
+////                var guid = newGuid();
+//
+//                if (resultInfo)
+//                {
+//                    var aqis = new Array();
+//                    console.log('获得aqi数量 ： '+resultInfo.length);
+//                    for (var i in resultInfo)
+//                    {
+//                        var aqiInfo = resultInfo[i];
+//                        if (!__production)
+//                        console.dir(aqiInfo);
+////                        console.dir(aqiInfo.area);
+//
+//                        var aqi = new AirQualityIndex();
+//                        aqi.set('area', aqiInfo.area);
+//                        aqi.set('aqi',aqiInfo.aqi);
+//                        aqi.set('position_name', aqiInfo.position_name);
+//                        aqi.set('station_code', aqiInfo.station_code);
+//                        aqi.set('so2', aqiInfo.so2);
+//                        aqi.set('so2_24h', aqiInfo.so2_24h);
+//                        aqi.set('no2', aqiInfo.no2);
+//                        aqi.set('no2_24h', aqiInfo.no2_24h);
+//                        aqi.set('pm10', aqiInfo.pm10);
+//                        aqi.set('pm10_24h', aqiInfo.pm10_24h);
+//                        aqi.set('co', aqiInfo.co);
+//                        aqi.set('co_24h', aqiInfo.co_24h);
+//                        aqi.set('o3', aqiInfo.o3);
+//                        aqi.set('o3_24h', aqiInfo.o3_24h);
+//                        aqi.set('o3_8h', aqiInfo.o3_8h);
+//                        aqi.set('o3_8h_24h', aqiInfo.o3_8h_24h);
+//                        aqi.set('pm2_5', aqiInfo.pm2_5);
+//                        aqi.set('pm2_5_24h', aqiInfo.pm2_5_24h);
+//                        aqi.set('primary_pollutant', aqiInfo.primary_pollutant);
+////                        aqi.set('guid',guid);
+//
+//                        aqi.set('quality', aqiInfo.quality);
+////                        aqi.set('time_point', aqiInfo.time_point);
+//                        aqis.push(aqi);
+//                    }
+//                    console.log('存入aqi数量 ： '+aqis.length);
+//                    AV.Object.saveAll(aqis, function(list, error) {
+//                        if (list) {
+//                            // All the objects were saved.
+//                            console.log('保存PM25成功');
+//                            console.log('成功存入aqi数量 ： '+list.length);
+//
+//                        } else {
+//                            // An error occurred.
+//                            console.log('保存PM25失败1');
+//                            console.dir(error);
+//                        }
+//                    });
+//                }
+//                else
+//                {
+//                    console.dir("resultInfo : "+resultInfo.result);
+//                }
+//            }
+//            catch(error) {
+//
+//                console.log('保存PM25失败2');
+//                console.dir(error);
+//            }
+//        },
+//        error: function(error) {
+//
+//            console.log('保存PM25失败3');
+//            console.dir(error);
+//        }
+//    });
+//
+//}
 
 if (!__production)
 {
