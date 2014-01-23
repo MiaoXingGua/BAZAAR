@@ -128,7 +128,7 @@ AV.Cloud.beforeSave("Message", function(request, response){
 //    var fromUserId = AV.Object.createWithoutData("_User", fromUser.id);
 
     console.dir(toUser);
-    console.dir(fromUser.id);
+    console.dir(fromUser);
 
     var user1;
     var user2;
